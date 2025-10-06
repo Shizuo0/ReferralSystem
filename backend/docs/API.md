@@ -179,6 +179,64 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 
 ---
 
+---
+
+### Rotas Protegidas
+
+Todas as rotas são protegidas por padrão, exceto as marcadas com `@Public()`.
+
+**Rotas Públicas:**
+- `GET /` - Hello World
+- `POST /auth/register` - Registro
+- `POST /auth/login` - Login
+
+**Rotas Protegidas (requerem token):**
+- `GET /protected` - Rota de exemplo protegida
+
+**Como usar:**
+
+1. Faça login e obtenha o token:
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "joao@example.com", "password": "senha123"}'
+```
+
+2. Use o token em requisições protegidas:
+```bash
+curl -X GET http://localhost:3000/protected \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+**Resposta de rota protegida:**
+```json
+{
+  "message": "Esta é uma rota protegida",
+  "user": {
+    "id": "user-uuid",
+    "email": "joao@example.com"
+  }
+}
+```
+
+**Erro sem token:**
+```json
+{
+  "statusCode": 401,
+  "message": "Token não fornecido"
+}
+```
+
+**Erro com token inválido:**
+```json
+{
+  "statusCode": 401,
+  "message": "Token inválido ou expirado"
+}
+```
+
+---
+
 ## Status de Implementação
 
 - ✅ POST /auth/register - Registro completo implementado
@@ -187,7 +245,7 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 - ✅ Geração de código único - Implementado (baseado no nome)
 - ✅ Sistema de pontos - Implementado (+1 ponto por indicação)
 - ✅ JWT Token - Implementado (válido por 7 dias)
-- ⏳ Auth Guard - A implementar (commit 3)
+- ✅ Auth Guard - Implementado (proteção global de rotas)
 
 ---
 
@@ -195,3 +253,4 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 
 - [Sistema de Indicação](./REFERRAL_SYSTEM.md) - Fluxo completo do sistema de pontos
 - [JWT](./JWT.md) - Documentação completa sobre autenticação com JWT
+- [Auth Guard](./AUTH_GUARD.md) - Proteção de rotas e uso de decorators

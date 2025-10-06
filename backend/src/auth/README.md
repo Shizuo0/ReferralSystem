@@ -279,11 +279,96 @@ FRONTEND_URL=http://localhost:5173
 
 ---
 
+---
+
+## Auth Guard (Proteção de Rotas)
+
+### Implementação Global
+
+O `JwtAuthGuard` está configurado globalmente no `AppModule`:
+
+```typescript
+providers: [
+  {
+    provide: APP_GUARD,
+    useClass: JwtAuthGuard,
+  }
+]
+```
+
+**Resultado:**
+- ✅ Todas as rotas são protegidas por padrão
+- ✅ Não precisa adicionar `@UseGuards()` manualmente
+- ✅ Segurança "secure by default"
+
+### Decorators
+
+#### @Public()
+
+Marca rotas como públicas (sem autenticação):
+
+```typescript
+@Public()
+@Post('register')
+async register() { ... }
+```
+
+#### @CurrentUser()
+
+Extrai dados do usuário autenticado:
+
+```typescript
+@Get('profile')
+getProfile(@CurrentUser() user: JwtPayload) {
+  return { userId: user.sub, email: user.email };
+}
+```
+
+### Exemplo Completo
+
+```typescript
+import { Controller, Get, Post } from '@nestjs/common';
+import { Public } from './decorators/public.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
+import type { JwtPayload } from './interfaces/jwt-payload.interface';
+
+@Controller('example')
+export class ExampleController {
+  // Rota pública
+  @Public()
+  @Get('public')
+  getPublic() {
+    return { message: 'Dados públicos' };
+  }
+
+  // Rota protegida
+  @Get('private')
+  getPrivate(@CurrentUser() user: JwtPayload) {
+    return {
+      message: 'Dados privados',
+      userId: user.sub,
+      email: user.email,
+    };
+  }
+}
+```
+
+---
+
+## Documentação Completa
+
+- [Proteção de Rotas (Auth Guard)](../../docs/AUTH_GUARD.md)
+- [JWT Tokens](../../docs/JWT.md)
+- [API Endpoints](../../docs/API.md)
+
+---
+
 ## Próximos Passos
 
-- [ ] Implementar JwtAuthGuard (commit 3)
-- [ ] Proteger rotas com @UseGuards(JwtAuthGuard)
+- [x] Implementar JwtAuthGuard
+- [x] Proteger rotas globalmente
 - [ ] Implementar refresh tokens
 - [ ] Adicionar logout (blacklist de tokens)
 - [ ] Rate limiting para login
 - [ ] 2FA (Two-Factor Authentication)
+- [ ] RBAC (Role-Based Access Control)
