@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
 import './Register.css';
@@ -10,6 +11,9 @@ interface FormErrors {
 }
 
 function Register() {
+  const [searchParams] = useSearchParams();
+  const referralCodeFromUrl = searchParams.get('ref');
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,6 +24,14 @@ function Register() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string>('');
+  const [referralInfo, setReferralInfo] = useState<string>('');
+
+  // Capturar código de indicação da URL
+  useEffect(() => {
+    if (referralCodeFromUrl) {
+      setReferralInfo(`Você foi indicado por alguém! Código: ${referralCodeFromUrl}`);
+    }
+  }, [referralCodeFromUrl]);
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
@@ -140,7 +152,7 @@ function Register() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        // referralCode será adicionado no próximo commit
+        referralCode: referralCodeFromUrl || undefined,
       });
 
       console.log('Registro bem-sucedido!', response);
@@ -179,6 +191,12 @@ function Register() {
         <p className="register-subtitle">
           Cadastre-se e comece a ganhar pontos por indicações
         </p>
+
+        {referralInfo && (
+          <div className="referral-info">
+            🎉 {referralInfo}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="register-form" noValidate>
           {apiError && (
