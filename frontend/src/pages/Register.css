@@ -82,6 +82,16 @@
   margin-top: -4px;
 }
 
+.api-error {
+  padding: 12px;
+  background-color: #fef2f2;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
 .submit-button {
   padding: 12px 24px;
   font-size: 16px;
@@ -100,6 +110,11 @@
 
 .submit-button:active {
   background-color: #3730a3;
+}
+
+.submit-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
 }
 
 .form-footer {

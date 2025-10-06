@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { ApiService } from '../services/api';
+import type { ApiError } from '../types';
 import './Register.css';
 
 interface FormErrors {
@@ -16,6 +18,8 @@ function Register() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string>('');
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
@@ -97,8 +101,11 @@ function Register() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Limpar erro da API
+    setApiError('');
 
     // Marcar todos os campos como touched
     setTouched({
@@ -125,8 +132,44 @@ function Register() {
       return;
     }
 
-    // Validação passou! Integração com API será no próximo commit
-    console.log('Formulário válido! Dados:', formData);
+    // Enviar para API
+    setIsLoading(true);
+
+    try {
+      const response = await ApiService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        // referralCode será adicionado no próximo commit
+      });
+
+      console.log('Registro bem-sucedido!', response);
+      
+      // Salvar token no localStorage
+      if (response.accessToken) {
+        localStorage.setItem('token', response.accessToken);
+      }
+
+      // Navegação para perfil será adicionada no próximo commit
+      alert('Cadastro realizado com sucesso!');
+    } catch (error) {
+      const apiError = error as ApiError;
+      
+      // Tratar mensagens de erro
+      let errorMessage = 'Erro ao criar conta. Tente novamente.';
+      
+      if (apiError.message) {
+        if (Array.isArray(apiError.message)) {
+          errorMessage = apiError.message.join(', ');
+        } else {
+          errorMessage = apiError.message;
+        }
+      }
+      
+      setApiError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -138,6 +181,12 @@ function Register() {
         </p>
         
         <form onSubmit={handleSubmit} className="register-form" noValidate>
+          {apiError && (
+            <div className="api-error">
+              {apiError}
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="name">Nome Completo</label>
             <input
@@ -194,8 +243,8 @@ function Register() {
             )}
           </div>
 
-          <button type="submit" className="submit-button">
-            Criar Conta
+          <button type="submit" className="submit-button" disabled={isLoading}>
+            {isLoading ? 'Criando conta...' : 'Criar Conta'}
           </button>
 
           <p className="form-footer">
