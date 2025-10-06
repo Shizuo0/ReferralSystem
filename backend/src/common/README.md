@@ -39,3 +39,42 @@ if (isValid) {
 - Cada hash é único, mesmo para senhas idênticas
 - Resistente a ataques de força bruta
 - Senhas nunca são armazenadas em texto plano
+
+---
+
+### ReferralCodeUtil
+
+Utilitário para geração de códigos de indicação únicos.
+
+**Métodos:**
+
+- `generateCode(): string`
+  - Gera código totalmente aleatório de 8 caracteres
+  - Usa apenas letras maiúsculas (A-Z) e números (0-9)
+  - Exemplo: `"K2X9M4L7"`
+
+- `generateFromName(name: string): string`
+  - Gera código baseado no nome do usuário + números aleatórios
+  - Mais amigável e fácil de lembrar
+  - Formato: 4 letras do nome + 4 números
+  - Exemplo: `"JOAO1234"` (para "João Silva")
+
+**Exemplo de uso:**
+
+```typescript
+import { ReferralCodeUtil } from './common/utils/referral-code.util';
+
+// Código aleatório
+const randomCode = ReferralCodeUtil.generateCode();
+// "K2X9M4L7"
+
+// Código baseado no nome
+const nameCode = ReferralCodeUtil.generateFromName('João Silva');
+// "JOAO1234"
+```
+
+**Características:**
+- Códigos de 8 caracteres (fáceis de compartilhar)
+- Apenas letras maiúsculas e números (evita confusão)
+- Geração baseada no nome torna códigos mais memoráveis
+- Remove caracteres especiais e acentos automaticamente

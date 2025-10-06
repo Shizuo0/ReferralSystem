@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,6 +10,7 @@ import { User } from '../users/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto, AuthResponseDto } from './dto/auth-response.dto';
 import { HashUtil } from '../common/utils/hash.util';
+import { ReferralCodeUtil } from '../common/utils/referral-code.util';
 
 @Injectable()
 export class AuthService {
@@ -44,12 +46,15 @@ export class AuthService {
     // Hash da senha antes de salvar
     const hashedPassword = await HashUtil.hashPassword(password);
 
+    // Gerar código de indicação único
+    const uniqueReferralCode = await this.generateUniqueReferralCode(name);
+
     // Criar novo usuário
     const newUser = this.userRepository.create({
       name,
       email,
       password: hashedPassword,
-      referralCode: 'TEMP', // TODO: Geração será implementada no commit 4
+      referralCode: uniqueReferralCode,
       referredById: referrer?.id || null,
       score: 0,
     });
@@ -72,5 +77,42 @@ export class AuthService {
       message: 'Usuário registrado com sucesso',
       user: userResponse,
     };
+  }
+
+  /**
+   * Gera um código de indicação único verificando no banco
+   * Tenta primeiro com base no nome, depois códigos aleatórios se necessário
+   */
+  private async generateUniqueReferralCode(name: string): Promise<string> {
+    const maxAttempts = 10;
+
+    // Tentar com código baseado no nome
+    for (let i = 0; i < maxAttempts; i++) {
+      const code = ReferralCodeUtil.generateFromName(name);
+      const existing = await this.userRepository.findOne({
+        where: { referralCode: code },
+      });
+
+      if (!existing) {
+        return code;
+      }
+    }
+
+    // Se não conseguiu com nome, tentar código totalmente aleatório
+    for (let i = 0; i < maxAttempts; i++) {
+      const code = ReferralCodeUtil.generateCode();
+      const existing = await this.userRepository.findOne({
+        where: { referralCode: code },
+      });
+
+      if (!existing) {
+        return code;
+      }
+    }
+
+    // Improvável de acontecer, mas por segurança
+    throw new InternalServerErrorException(
+      'Não foi possível gerar um código de indicação único',
+    );
   }
 }

@@ -31,11 +31,18 @@ Registra um novo usuário no sistema.
     "name": "João Silva",
     "email": "joao@example.com",
     "score": 0,
-    "referralCode": "TEMP",
+    "referralCode": "JOAO1234",
     "createdAt": "2025-10-05T00:00:00.000Z"
   }
 }
 ```
+
+**Código de Indicação:**
+- Gerado automaticamente no registro
+- 8 caracteres (4 letras + 4 números)
+- Baseado no nome do usuário para ser mais memorável
+- Exemplo: "João Silva" → `JOAO1234`
+- Garantido ser único no sistema
 
 **Possíveis Erros:**
 
@@ -99,5 +106,5 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 
 - ✅ POST /auth/register - Registro básico implementado
 - ✅ Hash de senha - Implementado com bcrypt
-- ⏳ Geração de código único - A implementar (commit 4)
+- ✅ Geração de código único - Implementado (baseado no nome)
 - ⏳ Sistema de pontos - A implementar (commit 5)
