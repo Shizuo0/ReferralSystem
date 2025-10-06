@@ -181,6 +181,55 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 
 ---
 
+## Usuário
+
+### GET /user/profile
+
+Retorna dados do perfil do usuário autenticado.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": "user-uuid",
+  "name": "João Silva",
+  "email": "joao@example.com",
+  "score": 5,
+  "referralCode": "JOAO1234",
+  "createdAt": "2025-10-05T00:00:00.000Z"
+}
+```
+
+**Possíveis Erros:**
+
+- **401 Unauthorized**: Token ausente ou inválido
+```json
+{
+  "statusCode": 401,
+  "message": "Token não fornecido"
+}
+```
+
+- **404 Not Found**: Usuário não encontrado
+```json
+{
+  "statusCode": 404,
+  "message": "Usuário não encontrado"
+}
+```
+
+**Exemplo de uso com curl:**
+```bash
+curl -X GET http://localhost:3000/user/profile \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
 ### Rotas Protegidas
 
 Todas as rotas são protegidas por padrão, exceto as marcadas com `@Public()`.
@@ -192,6 +241,7 @@ Todas as rotas são protegidas por padrão, exceto as marcadas com `@Public()`.
 
 **Rotas Protegidas (requerem token):**
 - `GET /protected` - Rota de exemplo protegida
+- `GET /user/profile` - Perfil do usuário autenticado
 
 **Como usar:**
 
@@ -241,11 +291,13 @@ curl -X GET http://localhost:3000/protected \
 
 - ✅ POST /auth/register - Registro completo implementado
 - ✅ POST /auth/login - Login completo com JWT
+- ✅ GET /user/profile - Perfil do usuário implementado
 - ✅ Hash de senha - Implementado com bcrypt
 - ✅ Geração de código único - Implementado (baseado no nome)
 - ✅ Sistema de pontos - Implementado (+1 ponto por indicação)
 - ✅ JWT Token - Implementado (válido por 7 dias)
 - ✅ Auth Guard - Implementado (proteção global de rotas)
+- ⏳ Link de indicação - A implementar (commit 2)
 
 ---
 
