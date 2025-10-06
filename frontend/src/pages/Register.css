@@ -1,0 +1,39 @@
+/* Register Page Styles - CSS Puro */
+/* Será estilizado completamente na Issue #8 */
+
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.register-card h1 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  color: #333;
+}
+
+.register-subtitle {
+  margin: 0 0 30px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.form-placeholder {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+}
