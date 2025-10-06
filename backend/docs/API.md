@@ -93,6 +93,71 @@ curl -X POST http://localhost:3000/auth/register \
 
 ---
 
+### POST /auth/login
+
+Realiza login de um usuário existente.
+
+**Request Body:**
+```json
+{
+  "email": "joao@example.com",
+  "password": "senha123"
+}
+```
+
+**Validações:**
+- `email`: obrigatório, formato de email válido
+- `password`: obrigatório, string
+
+**Response (200 OK):**
+```json
+{
+  "message": "Login realizado com sucesso",
+  "user": {
+    "id": "uuid",
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "score": 5,
+    "referralCode": "JOAO1234",
+    "createdAt": "2025-10-05T00:00:00.000Z"
+  },
+  "accessToken": "temp-token"
+}
+```
+
+**Possíveis Erros:**
+
+- **401 Unauthorized**: Email ou senha inválidos
+```json
+{
+  "statusCode": 401,
+  "message": "Email ou senha inválidos"
+}
+```
+
+- **400 Bad Request**: Validação de campos
+```json
+{
+  "statusCode": 400,
+  "message": [
+    "Email deve ser válido",
+    "Senha é obrigatória"
+  ]
+}
+```
+
+**Exemplo de uso com curl:**
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "joao@example.com",
+    "password": "senha123"
+  }'
+```
+
+---
+
 ## Segurança
 
 ### Hash de Senhas
@@ -111,6 +176,9 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 ## Status de Implementação
 
 - ✅ POST /auth/register - Registro completo implementado
+- ✅ POST /auth/login - Login básico implementado
 - ✅ Hash de senha - Implementado com bcrypt
 - ✅ Geração de código único - Implementado (baseado no nome)
 - ✅ Sistema de pontos - Implementado (+1 ponto por indicação)
+- ⏳ JWT Token - A implementar (commit 2)
+- ⏳ Auth Guard - A implementar (commit 3)
