@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:reset": "rm -f database/referral-system.db && echo 'Database reset! Run start:dev to recreate.'",
+    "db:backup": "mkdir -p database/backups && cp database/referral-system.db database/backups/backup-$(date +%Y%m%d-%H%M%S).db && echo 'Backup created!'"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
