@@ -121,9 +121,15 @@ Realiza login de um usuário existente.
     "referralCode": "JOAO1234",
     "createdAt": "2025-10-05T00:00:00.000Z"
   },
-  "accessToken": "temp-token"
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+
+**Access Token (JWT):**
+- Token válido por 7 dias (configurável via `JWT_EXPIRES_IN`)
+- Contém payload: `{ sub: userId, email: userEmail }`
+- Deve ser enviado no header `Authorization: Bearer <token>` nas requisições autenticadas
+- Assinado com `JWT_SECRET` (configurável via env)
 
 **Possíveis Erros:**
 
@@ -176,9 +182,16 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 ## Status de Implementação
 
 - ✅ POST /auth/register - Registro completo implementado
-- ✅ POST /auth/login - Login básico implementado
+- ✅ POST /auth/login - Login completo com JWT
 - ✅ Hash de senha - Implementado com bcrypt
 - ✅ Geração de código único - Implementado (baseado no nome)
 - ✅ Sistema de pontos - Implementado (+1 ponto por indicação)
-- ⏳ JWT Token - A implementar (commit 2)
+- ✅ JWT Token - Implementado (válido por 7 dias)
 - ⏳ Auth Guard - A implementar (commit 3)
+
+---
+
+## Documentação Adicional
+
+- [Sistema de Indicação](./REFERRAL_SYSTEM.md) - Fluxo completo do sistema de pontos
+- [JWT](./JWT.md) - Documentação completa sobre autenticação com JWT

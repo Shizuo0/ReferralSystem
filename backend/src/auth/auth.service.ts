@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/user.entity';
@@ -14,12 +15,14 @@ import { RegisterResponseDto, AuthResponseDto } from './dto/auth-response.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { HashUtil } from '../common/utils/hash.util';
 import { ReferralCodeUtil } from '../common/utils/referral-code.util';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
@@ -166,13 +169,25 @@ export class AuthService {
       createdAt: user.createdAt,
     };
 
-    // TODO: Gerar JWT token (commit 2)
-    const accessToken = 'temp-token';
+    // Gerar JWT token
+    const accessToken = await this.generateToken(user);
 
     return {
       message: 'Login realizado com sucesso',
       user: userResponse,
       accessToken,
     };
+  }
+
+  /**
+   * Gera um JWT token para o usuário
+   */
+  private async generateToken(user: User): Promise<string> {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    return this.jwtService.signAsync(payload);
   }
 }
