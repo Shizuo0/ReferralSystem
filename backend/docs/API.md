@@ -80,9 +80,24 @@ curl -X POST http://localhost:3000/auth/register \
 
 ---
 
+## Segurança
+
+### Hash de Senhas
+
+As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
+- Senhas nunca são armazenadas em texto plano
+- Cada senha gera um hash único (mesmo que sejam idênticas)
+- Algoritmo bcrypt é resistente a ataques de força bruta
+
+**Exemplo:**
+- Senha: `senha123`
+- Hash: `$2b$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+
+---
+
 ## Status de Implementação
 
 - ✅ POST /auth/register - Registro básico implementado
-- ⏳ Hash de senha - A implementar (commit 3)
+- ✅ Hash de senha - Implementado com bcrypt
 - ⏳ Geração de código único - A implementar (commit 4)
 - ⏳ Sistema de pontos - A implementar (commit 5)

@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { User } from '../users/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto, AuthResponseDto } from './dto/auth-response.dto';
+import { HashUtil } from '../common/utils/hash.util';
 
 @Injectable()
 export class AuthService {
@@ -40,11 +41,14 @@ export class AuthService {
       }
     }
 
+    // Hash da senha antes de salvar
+    const hashedPassword = await HashUtil.hashPassword(password);
+
     // Criar novo usuário
     const newUser = this.userRepository.create({
       name,
       email,
-      password, // TODO: Hash será implementado no próximo commit
+      password: hashedPassword,
       referralCode: 'TEMP', // TODO: Geração será implementada no commit 4
       referredById: referrer?.id || null,
       score: 0,
