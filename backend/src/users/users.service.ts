@@ -12,7 +12,7 @@ export class UsersService {
 
   /**
    * Busca perfil do usuário por ID
-   * Retorna dados públicos (sem senha)
+   * Retorna dados públicos (sem senha) + link de indicação
    */
   async getProfile(userId: string) {
     const user = await this.userRepository.findOne({
@@ -23,6 +23,9 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado');
     }
 
+    // Gerar link de indicação
+    const referralLink = this.generateReferralLink(user.referralCode);
+
     // Retornar dados sem a senha
     return {
       id: user.id,
@@ -30,6 +33,7 @@ export class UsersService {
       email: user.email,
       score: user.score,
       referralCode: user.referralCode,
+      referralLink: referralLink,
       createdAt: user.createdAt,
     };
   }
@@ -41,5 +45,15 @@ export class UsersService {
     return this.userRepository.findOne({
       where: { id: userId },
     });
+  }
+
+  /**
+   * Gera link de indicação completo
+   * Formato: http://localhost:5173/register?ref=MARI1234
+   */
+  private generateReferralLink(referralCode: string): string {
+    const frontendUrl =
+      process.env.FRONTEND_URL || 'http://localhost:5173';
+    return `${frontendUrl}/register?ref=${referralCode}`;
   }
 }

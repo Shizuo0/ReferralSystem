@@ -200,9 +200,16 @@ Authorization: Bearer <token>
   "email": "joao@example.com",
   "score": 5,
   "referralCode": "JOAO1234",
+  "referralLink": "http://localhost:5173/register?ref=JOAO1234",
   "createdAt": "2025-10-05T00:00:00.000Z"
 }
 ```
+
+**Link de Indicação:**
+- Gerado automaticamente baseado no código do usuário
+- Formato: `${FRONTEND_URL}/register?ref=${referralCode}`
+- Pronto para compartilhar (copiar e colar)
+- Frontend deve capturar o parâmetro `ref` da URL
 
 **Possíveis Erros:**
 
@@ -291,13 +298,13 @@ curl -X GET http://localhost:3000/protected \
 
 - ✅ POST /auth/register - Registro completo implementado
 - ✅ POST /auth/login - Login completo com JWT
-- ✅ GET /user/profile - Perfil do usuário implementado
+- ✅ GET /user/profile - Perfil do usuário com link de indicação
 - ✅ Hash de senha - Implementado com bcrypt
 - ✅ Geração de código único - Implementado (baseado no nome)
 - ✅ Sistema de pontos - Implementado (+1 ponto por indicação)
 - ✅ JWT Token - Implementado (válido por 7 dias)
 - ✅ Auth Guard - Implementado (proteção global de rotas)
-- ⏳ Link de indicação - A implementar (commit 2)
+- ✅ Link de indicação - Implementado (gerado automaticamente)
 
 ---
 
