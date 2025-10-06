@@ -61,7 +61,10 @@ export class AuthService {
 
     const savedUser = await this.userRepository.save(newUser);
 
-    // TODO: Incrementar pontuação do referrer (commit 5)
+    // Incrementar pontuação do usuário que indicou
+    if (referrer) {
+      await this.incrementReferrerScore(referrer.id);
+    }
 
     // Retornar dados do usuário (sem a senha)
     const userResponse: AuthResponseDto = {
@@ -114,5 +117,13 @@ export class AuthService {
     throw new InternalServerErrorException(
       'Não foi possível gerar um código de indicação único',
     );
+  }
+
+  /**
+   * Incrementa a pontuação do usuário que fez a indicação
+   * @param referrerId ID do usuário que indicou
+   */
+  private async incrementReferrerScore(referrerId: string): Promise<void> {
+    await this.userRepository.increment({ id: referrerId }, 'score', 1);
   }
 }

@@ -44,6 +44,12 @@ Registra um novo usuário no sistema.
 - Exemplo: "João Silva" → `JOAO1234`
 - Garantido ser único no sistema
 
+**Sistema de Pontos:**
+- Quando um usuário se registra usando um código de indicação válido:
+  - O novo usuário é criado normalmente (score = 0)
+  - O usuário que indicou ganha **+1 ponto** automaticamente
+  - A pontuação é atualizada imediatamente no banco de dados
+
 **Possíveis Erros:**
 
 - **409 Conflict**: Email já cadastrado
@@ -104,7 +110,7 @@ As senhas são armazenadas usando **bcrypt** com 10 salt rounds:
 
 ## Status de Implementação
 
-- ✅ POST /auth/register - Registro básico implementado
+- ✅ POST /auth/register - Registro completo implementado
 - ✅ Hash de senha - Implementado com bcrypt
 - ✅ Geração de código único - Implementado (baseado no nome)
-- ⏳ Sistema de pontos - A implementar (commit 5)
+- ✅ Sistema de pontos - Implementado (+1 ponto por indicação)
