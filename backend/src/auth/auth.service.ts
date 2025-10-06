@@ -3,20 +3,26 @@ import {
   ConflictException,
   BadRequestException,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/user.entity';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { RegisterResponseDto, AuthResponseDto } from './dto/auth-response.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
 import { HashUtil } from '../common/utils/hash.util';
 import { ReferralCodeUtil } from '../common/utils/referral-code.util';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
@@ -125,5 +131,63 @@ export class AuthService {
    */
   private async incrementReferrerScore(referrerId: string): Promise<void> {
     await this.userRepository.increment({ id: referrerId }, 'score', 1);
+  }
+
+  /**
+   * Realiza login do usuário
+   * Valida credenciais e retorna dados do usuário
+   */
+  async login(loginDto: LoginDto): Promise<LoginResponseDto> {
+    const { email, password } = loginDto;
+
+    // Buscar usuário pelo email
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Email ou senha inválidos');
+    }
+
+    // Verificar senha
+    const isPasswordValid = await HashUtil.comparePassword(
+      password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Email ou senha inválidos');
+    }
+
+    // Retornar dados do usuário (sem a senha)
+    const userResponse: AuthResponseDto = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      score: user.score,
+      referralCode: user.referralCode,
+      createdAt: user.createdAt,
+    };
+
+    // Gerar JWT token
+    const accessToken = await this.generateToken(user);
+
+    return {
+      message: 'Login realizado com sucesso',
+      user: userResponse,
+      accessToken,
+    };
+  }
+
+  /**
+   * Gera um JWT token para o usuário
+   */
+  private async generateToken(user: User): Promise<string> {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    return this.jwtService.signAsync(payload);
   }
 }
