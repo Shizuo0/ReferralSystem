@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
 import './Register.css';
@@ -12,6 +12,7 @@ interface FormErrors {
 
 function Register() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const referralCodeFromUrl = searchParams.get('ref');
 
   const [formData, setFormData] = useState({
@@ -162,8 +163,8 @@ function Register() {
         localStorage.setItem('token', response.accessToken);
       }
 
-      // Navegação para perfil será adicionada no próximo commit
-      alert('Cadastro realizado com sucesso!');
+      // Redirecionar para perfil
+      navigate('/profile');
     } catch (error) {
       const apiError = error as ApiError;
       

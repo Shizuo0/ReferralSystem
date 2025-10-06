@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 import './App.css';
 
 function App() {
@@ -8,7 +9,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/register" replace />} />
         <Route path="/register" element={<Register />} />
-        {/* Outras rotas serão adicionadas nas próximas issues */}
+        <Route path="/profile" element={<Profile />} />
+        {/* Rota de login será adicionada na próxima issue */}
       </Routes>
     </BrowserRouter>
   );
