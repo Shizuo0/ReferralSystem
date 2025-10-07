@@ -145,13 +145,70 @@
   text-decoration: underline;
 }
 
-/* Responsivo */
-@media (max-width: 480px) {
+/* Responsivo Tablet */
+@media (max-width: 768px) {
+  .register-container {
+    padding: var(--spacing-md);
+  }
+  
   .register-card {
-    padding: 30px 20px;
+    padding: var(--spacing-3xl) var(--spacing-xl);
+  }
+}
+
+/* Responsivo Mobile */
+@media (max-width: 480px) {
+  .register-container {
+    padding: var(--spacing-sm);
+  }
+  
+  .register-card {
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    border-radius: var(--radius-md);
   }
   
   .register-card h1 {
-    font-size: 24px;
+    font-size: var(--font-size-2xl);
+  }
+  
+  .register-subtitle {
+    font-size: var(--font-size-sm);
+  }
+  
+  .form-group input {
+    /* Touch target mínimo */
+    min-height: 44px;
+  }
+  
+  .submit-button {
+    /* Touch target mínimo */
+    min-height: 44px;
+    width: 100%;
+  }
+  
+  .referral-info {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+  
+  .form-footer {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Landscape Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .register-container {
+    padding: var(--spacing-md);
+    align-items: flex-start;
+    padding-top: var(--spacing-xl);
+  }
+  
+  .register-card {
+    margin: var(--spacing-md) auto;
+  }
+  
+  .register-form {
+    gap: var(--spacing-md);
   }
 }

@@ -233,25 +233,159 @@
   background-color: #5568d3;
 }
 
-/* Responsividade para mobile */
+/* Responsividade Tablet */
 @media (max-width: 768px) {
+  .profile-container {
+    padding: var(--spacing-md);
+  }
+  
   .profile-card {
-    padding: 24px;
+    padding: var(--spacing-3xl);
+    max-width: 100%;
+  }
+
+  .profile-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
   }
 
   .profile-header h1 {
-    font-size: 24px;
+    font-size: var(--font-size-2xl);
+  }
+  
+  .logout-button {
+    /* Touch target mínimo */
+    min-height: 44px;
+    padding: var(--spacing-sm) var(--spacing-lg);
   }
 
   .score-value {
-    font-size: 40px;
+    font-size: var(--font-size-4xl);
   }
 
   .referral-link-container {
     flex-direction: column;
+    gap: var(--spacing-md);
   }
 
   .copy-button {
     width: 100%;
+    /* Touch target mínimo */
+    min-height: 44px;
+  }
+}
+
+/* Responsividade Mobile */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: var(--spacing-sm);
+  }
+  
+  .profile-card {
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    border-radius: var(--radius-md);
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: var(--spacing-lg);
+  }
+
+  .profile-header h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .logout-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .info-item {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .info-label {
+    font-size: var(--font-size-xs);
+  }
+  
+  .info-value {
+    font-size: var(--font-size-sm);
+  }
+  
+  .score-section {
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .score-card {
+    padding: var(--spacing-xl);
+  }
+  
+  .score-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .score-value {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .score-hint {
+    font-size: var(--font-size-xs);
+  }
+  
+  .referral-section h2 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .referral-description {
+    font-size: var(--font-size-xs);
+  }
+  
+  .referral-link-input {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    /* Touch target mínimo */
+    min-height: 44px;
+  }
+  
+  .copy-button {
+    font-size: var(--font-size-sm);
+  }
+  
+  .copy-success-message {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Landscape Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .profile-container {
+    padding: var(--spacing-md);
+    align-items: flex-start;
+    padding-top: var(--spacing-xl);
+  }
+  
+  .profile-card {
+    margin: var(--spacing-md) auto;
+  }
+  
+  .score-section,
+  .referral-section {
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+/* iPhone SE e dispositivos pequenos */
+@media (max-width: 375px) {
+  .profile-card {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+  
+  .profile-header h1 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .score-value {
+    font-size: var(--font-size-2xl);
   }
 }
