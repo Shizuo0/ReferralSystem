@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
 import { clearCacheKeepToken, getAuthToken } from '../utils/cache';
+import { ProfileSkeleton } from '../components/SkeletonLoader';
 import './Profile.css';
 
 interface ProfileData {
@@ -97,10 +98,7 @@ function Profile() {
     return (
       <div className="profile-container">
         <div className="profile-card">
-          <div className="loading-spinner-container">
-            <div className="spinner"></div>
-            <p className="loading-text">Carregando perfil...</p>
-          </div>
+          <ProfileSkeleton />
         </div>
       </div>
     );

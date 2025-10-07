@@ -159,12 +159,105 @@ export const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
 ---
 
+---
+
+## LoadingSpinner
+
+Componente de spinner de loading reutilizável com suporte a diferentes tamanhos.
+
+### Props
+
+```typescript
+interface LoadingSpinnerProps {
+  size?: 'small' | 'medium' | 'large';
+  message?: string;
+  fullScreen?: boolean;
+}
+```
+
+### Uso
+
+```tsx
+import { LoadingSpinner } from '../components/LoadingSpinner';
+
+// Spinner pequeno
+<LoadingSpinner size="small" />
+
+// Com mensagem
+<LoadingSpinner size="medium" message="Carregando dados..." />
+
+// Tela cheia
+<LoadingSpinner size="large" message="Carregando..." fullScreen />
+```
+
+---
+
+## SkeletonLoader
+
+Componente de skeleton loader para placeholder de conteúdo durante carregamento.
+
+### Props
+
+```typescript
+interface SkeletonLoaderProps {
+  variant?: 'text' | 'circle' | 'rectangle';
+  width?: string | number;
+  height?: string | number;
+  count?: number;
+}
+```
+
+### Uso
+
+```tsx
+import { SkeletonLoader, ProfileSkeleton, FormSkeleton } from '../components/SkeletonLoader';
+
+// Skeleton de texto
+<SkeletonLoader variant="text" width="60%" />
+
+// Skeleton circular (avatar)
+<SkeletonLoader variant="circle" width={40} height={40} />
+
+// Skeleton de retângulo
+<SkeletonLoader variant="rectangle" width="100%" height={100} />
+
+// Múltiplos skeletons
+<SkeletonLoader variant="text" count={3} />
+
+// Skeleton pré-configurado de perfil
+<ProfileSkeleton />
+
+// Skeleton pré-configurado de formulário
+<FormSkeleton fields={3} />
+```
+
+### Skeletons Pré-configurados
+
+#### ProfileSkeleton
+Skeleton otimizado para a página de perfil com:
+- Header (título + botão)
+- Informações do usuário
+- Card de pontuação
+- Seção de link de indicação
+
+#### FormSkeleton
+Skeleton otimizado para formulários com:
+- Labels e inputs
+- Botão de submit
+- Configurável via prop `fields`
+
+---
+
 ## Estrutura
 
 ```
 components/
-├── PrivateRoute.tsx   # Rota protegida otimizada
-└── README.md          # Esta documentação
+├── PrivateRoute.tsx      # Rota protegida otimizada
+├── LoadingSpinner.tsx    # Spinner reutilizável
+├── LoadingSpinner.css    # Estilos do spinner
+├── SkeletonLoader.tsx    # Skeleton loaders
+├── SkeletonLoader.css    # Estilos dos skeletons
+└── README.md             # Esta documentação
 ```
 
 **Próximos componentes:**
