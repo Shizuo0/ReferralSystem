@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { ApiService } from '../services/api';
+import type { ApiError } from '../types';
 import './Login.css';
 
 interface FormErrors {
@@ -14,6 +16,8 @@ function Login() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string>('');
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
@@ -74,8 +78,11 @@ function Login() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Limpar erro da API
+    setApiError('');
 
     // Marcar todos os campos como touched
     setTouched({
@@ -99,8 +106,39 @@ function Login() {
       return;
     }
 
-    // Integração com API será adicionada no próximo commit
-    console.log('Login data:', formData);
+    // Enviar para API
+    setIsLoading(true);
+
+    try {
+      const response = await ApiService.login(formData.email, formData.password);
+
+      console.log('Login bem-sucedido!', response);
+      
+      // Salvar token no localStorage
+      if (response.accessToken) {
+        localStorage.setItem('token', response.accessToken);
+      }
+
+      // Navegação será adicionada no próximo commit
+      alert('Login realizado com sucesso!');
+    } catch (error) {
+      const apiError = error as ApiError;
+      
+      // Tratar mensagens de erro
+      let errorMessage = 'Erro ao fazer login. Tente novamente.';
+      
+      if (apiError.message) {
+        if (Array.isArray(apiError.message)) {
+          errorMessage = apiError.message.join(', ');
+        } else {
+          errorMessage = apiError.message;
+        }
+      }
+      
+      setApiError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -112,6 +150,12 @@ function Login() {
         </p>
         
         <form onSubmit={handleSubmit} className="login-form" noValidate>
+          {apiError && (
+            <div className="api-error">
+              {apiError}
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -146,8 +190,8 @@ function Login() {
             )}
           </div>
 
-          <button type="submit" className="submit-button">
-            Entrar
+          <button type="submit" className="submit-button" disabled={isLoading}>
+            {isLoading ? 'Entrando...' : 'Entrar'}
           </button>
 
           <p className="form-footer">
