@@ -1,20 +1,54 @@
+/* Profile Page - DARK MODE */
+
 .profile-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
 }
 
 .profile-card {
-  background: white;
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
   padding: 40px;
   width: 100%;
   max-width: 600px;
-  animation: fadeInUp 0.5s ease-out;
+  animation: fadeInUp 0.6s ease-out, glow 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #6366f1, #7c3aed, #5b21b6, #6366f1);
+  background-size: 400%;
+  border-radius: 12px;
+  opacity: 0.3;
+  z-index: -1;
+  animation: gradientShift 8s ease infinite;
+}
+
+.profile-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  z-index: -1;
 }
 
 .profile-header {
@@ -23,29 +57,55 @@
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.3);
 }
 
 .profile-header h1 {
   font-size: 28px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .logout-button {
   padding: 8px 16px;
-  background-color: #ef4444;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.logout-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.logout-button:active::before {
+  width: 200px;
+  height: 200px;
 }
 
 .logout-button:hover {
-  background-color: #dc2626;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(239, 68, 68, 0.5);
 }
 
 .profile-info {
@@ -56,11 +116,20 @@
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  transition: all var(--transition-base);
+}
+
+.info-item:hover {
+  background: var(--bg-tertiary);
+  transform: translateX(5px);
 }
 
 .info-label {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   text-transform: uppercase;
   font-weight: 600;
   margin-bottom: 4px;
@@ -68,7 +137,7 @@
 
 .info-value {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .score-section {
@@ -76,7 +145,7 @@
 }
 
 .score-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 50%, #5b21b6 100%);
   border-radius: 12px;
   padding: 30px;
   text-align: center;
@@ -85,12 +154,26 @@
   flex-direction: column;
   gap: 8px;
   transition: all var(--transition-base);
-  animation: scaleIn 0.5s ease-out 0.2s both;
+  animation: scaleIn 0.5s ease-out 0.2s both, pulse 4s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 3s linear infinite;
 }
 
 .score-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.5), 0 0 40px rgba(124, 58, 237, 0.3);
 }
 
 .score-label {
@@ -103,6 +186,7 @@
 .score-value {
   font-size: 48px;
   font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .score-hint {
@@ -116,13 +200,17 @@
 
 .referral-section h2 {
   font-size: 20px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12px;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .referral-description {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -136,34 +224,36 @@
 .referral-link-input {
   flex: 1;
   padding: 12px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   border-radius: 6px;
   font-size: 14px;
-  color: #333;
-  background-color: #f9fafb;
+  transition: all var(--transition-base);
 }
 
 .referral-link-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
   outline: 2px solid transparent;
+  background-color: var(--bg-tertiary);
 }
 
 .referral-link-input:focus-visible {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
 .copy-button {
   padding: 12px 24px;
-  background-color: #667eea;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   white-space: nowrap;
   position: relative;
   overflow: hidden;
@@ -188,13 +278,13 @@
 }
 
 .copy-button:hover {
-  background-color: #5568d3;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 15px rgba(99, 102, 241, 0.5), 0 0 20px rgba(124, 58, 237, 0.3);
 }
 
 .copy-button:focus-visible {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
@@ -203,31 +293,31 @@
 }
 
 .copy-button.copied {
-  background-color: #22c55e;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
   animation: scaleIn 0.3s ease-out;
 }
 
 .copy-button.copied:hover {
-  background-color: #16a34a;
+  background: linear-gradient(135deg, #16a34a, #15803d);
 }
 
 .copy-success-message {
   font-size: 14px;
-  color: #22c55e;
+  color: var(--success-color);
   margin-top: 8px;
   animation: fadeIn 0.3s ease-out;
 }
 
 .loading-text {
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 16px;
   animation: pulse 2s ease-in-out infinite;
 }
 
 .error-message {
   text-align: center;
-  color: #ef4444;
+  color: var(--error-color);
   padding: 20px;
 }
 
@@ -238,18 +328,20 @@
 
 .error-button {
   padding: 12px 24px;
-  background-color: #667eea;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .error-button:hover {
-  background-color: #5568d3;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(99, 102, 241, 0.5);
 }
 
 /* Responsividade Tablet */
@@ -273,7 +365,6 @@
   }
   
   .logout-button {
-    /* Touch target mínimo */
     min-height: 44px;
     padding: var(--spacing-sm) var(--spacing-lg);
   }
@@ -289,7 +380,6 @@
 
   .copy-button {
     width: 100%;
-    /* Touch target mínimo */
     min-height: 44px;
   }
 }
@@ -363,7 +453,6 @@
   .referral-link-input {
     padding: var(--spacing-md);
     font-size: var(--font-size-sm);
-    /* Touch target mínimo */
     min-height: 44px;
   }
   
