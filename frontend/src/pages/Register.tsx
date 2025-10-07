@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ApiService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import type { ApiError } from '../types';
-import { clearAllCache, clearCacheKeepToken, hasActiveSession } from '../utils/cache';
+import { clearAllCache, clearCacheKeepToken } from '../utils/cache';
 import './Register.css';
 
 interface FormErrors {
@@ -14,16 +14,18 @@ interface FormErrors {
 function Register() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { register: registerUser, isAuthenticated } = useAuth();
   const referralCodeFromUrl = searchParams.get('ref');
 
-  // Detectar se há sessão ativa e limpar automaticamente
+  // Redirecionar se já está autenticado
   useEffect(() => {
-    // Se há uma sessão ativa (token existe)
-    if (hasActiveSession()) {
-      // Limpar automaticamente para evitar conflitos
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else if (referralCodeFromUrl) {
+      // Se há código de indicação, limpar cache para evitar conflitos
       clearAllCache();
     }
-  }, [referralCodeFromUrl]);
+  }, [isAuthenticated, navigate, referralCodeFromUrl]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -112,6 +114,11 @@ function Register() {
         [name]: undefined
       }));
     }
+    
+    // Limpar erro da API quando usuário digita
+    if (apiError) {
+      setApiError('');
+    }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -164,25 +171,21 @@ function Register() {
     setIsLoading(true);
 
     try {
-      const response = await ApiService.register({
+      await registerUser({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         referralCode: referralCodeFromUrl || undefined,
       });
 
-      console.log('Registro bem-sucedido!', response);
+      // AuthContext já salva o token e atualiza o estado
+      // Mostrar mensagem de sucesso e redirecionar
+      setSuccessMessage(`✓ Conta criada com sucesso! Bem-vindo(a), ${formData.name}!`);
       
-      // IMPORTANTE: Garantir que não há token salvo antes de redirecionar para login
-      clearAllCache();
-      
-      // Mostrar mensagem de sucesso e redirecionar para login
-      setSuccessMessage(`✓ Conta criada com sucesso! Bem-vindo(a), ${response.user.name}! Redirecionando para login...`);
-      
-      // Redirecionar após 2 segundos
+      // Redirecionar para perfil após 1.5 segundos
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate('/profile');
+      }, 1500);
     } catch (error) {
       const apiError = error as ApiError;
       
@@ -241,6 +244,7 @@ function Register() {
               onBlur={handleBlur}
               placeholder="Digite seu nome completo"
               className={touched.name && errors.name ? 'input-error' : ''}
+              autoComplete="name"
             />
             {touched.name && errors.name && (
               <span className="error-message">{errors.name}</span>
@@ -258,6 +262,7 @@ function Register() {
               onBlur={handleBlur}
               placeholder="seu@email.com"
               className={touched.email && errors.email ? 'input-error' : ''}
+              autoComplete="email"
             />
             {touched.email && errors.email && (
               <span className="error-message">{errors.email}</span>
@@ -275,6 +280,7 @@ function Register() {
               onBlur={handleBlur}
               placeholder="Mínimo 8 caracteres"
               className={touched.password && errors.password ? 'input-error' : ''}
+              autoComplete="new-password"
             />
             {touched.password && errors.password && (
               <span className="error-message">{errors.password}</span>
@@ -287,7 +293,14 @@ function Register() {
           </div>
 
           <button type="submit" className="submit-button" disabled={isLoading}>
-            {isLoading ? 'Criando conta...' : 'Criar Conta'}
+            {isLoading ? (
+              <>
+                <span className="button-spinner"></span>
+                Criando conta...
+              </>
+            ) : (
+              'Criar Conta'
+            )}
           </button>
 
           <p className="form-footer">
