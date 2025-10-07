@@ -81,17 +81,42 @@ Página de perfil do usuário autenticado.
 
 ---
 
-## Páginas Planejadas
-
 ### Login.tsx
 Página de autenticação para usuários existentes.
 
-**Funcionalidades previstas:**
-- Formulário de email e senha
-- Validação básica
-- Autenticação via JWT
-- Redirecionamento pós-login
-- Link para cadastro
+**Funcionalidades:**
+- Formulário com campos: email e senha
+- Validação em tempo real:
+  - Email: formato válido e obrigatório
+  - Senha: obrigatória
+- Estados de erro por campo
+- Feedback visual (campos com erro em vermelho)
+- Integração com API de login
+- Navegação automática para perfil após sucesso
+- Redirecionamento automático se já estiver logado
+- Link para página de cadastro
+
+**Estados:**
+- `formData`: dados do formulário (email, password)
+- `errors`: erros de validação
+- `touched`: campos que o usuário já interagiu
+- `isLoading`: estado de carregamento da API
+- `apiError`: erros retornados pela API
+
+**Validações:**
+- `validateEmail()`: formato de email válido
+- `validatePassword()`: senha obrigatória
+
+**Fluxo:**
+1. Verifica se já tem token → Se sim, redireciona para `/profile`
+2. Usuário preenche email e senha
+3. Validação em tempo real
+4. Submit → API
+5. Sucesso → Salva token → Redireciona para `/profile`
+6. Erro → Exibe mensagem de erro
+
+**Proteção:**
+- Se usuário já está autenticado (tem token), é redirecionado automaticamente para o perfil
 
 ---
 
@@ -173,6 +198,22 @@ Estrutura de rotas (atual):
 **Sem token válido:**
 ```
 /profile → Verifica token → Inválido → /login
+```
+
+---
+
+## APIs Utilizadas
+
+### Register.tsx
+- `POST /auth/register` (via `ApiService.register()`)
+
+### Login.tsx
+- `POST /auth/login` (via `ApiService.login()`)
+
+### Profile.tsx
+- `GET /user/profile` (via `ApiService.getProfile()`)
+  - Requer header: `Authorization: Bearer <token>`
+ → Remove token → /login
 ```
 
 ---
