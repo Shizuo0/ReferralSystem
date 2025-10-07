@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import type { ApiError } from '../types';
+import { useToast } from '../contexts/ToastContext';
 import { clearCacheKeepToken } from '../utils/cache';
+import { formatErrorMessage } from '../utils/errorHandler';
 import './Login.css';
 
 interface FormErrors {
@@ -14,6 +15,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated } = useAuth();
+  const { showError, showWarning } = useToast();
   const sessionExpired = (location.state as any)?.sessionExpired;
 
   const [formData, setFormData] = useState({
@@ -29,9 +31,9 @@ function Login() {
   // Mostrar mensagem se sessão expirou
   useEffect(() => {
     if (sessionExpired) {
-      setApiError('Sua sessão expirou. Por favor, faça login novamente.');
+      showWarning('Sua sessão expirou. Por favor, faça login novamente.');
     }
-  }, [sessionExpired]);
+  }, [sessionExpired, showWarning]);
 
   // Redirecionar se já está autenticado
   useEffect(() => {
@@ -150,20 +152,9 @@ function Login() {
       // Redirecionar para perfil
       navigate('/profile');
     } catch (error) {
-      const apiError = error as ApiError;
-      
-      // Tratar mensagens de erro
-      let errorMessage = 'Erro ao fazer login. Tente novamente.';
-      
-      if (apiError.message) {
-        if (Array.isArray(apiError.message)) {
-          errorMessage = apiError.message.join(', ');
-        } else {
-          errorMessage = apiError.message;
-        }
-      }
-      
+      const errorMessage = formatErrorMessage(error);
       setApiError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }

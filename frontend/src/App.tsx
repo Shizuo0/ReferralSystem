@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { PrivateRoute } from './components/PrivateRoute';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { useRouteCache } from './hooks/useRouteCache';
@@ -47,13 +48,15 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <LoadingProvider>
-        <AuthProvider>
-          <Suspense fallback={<LoadingScreen />}>
-            <AppRoutes />
-          </Suspense>
-        </AuthProvider>
-      </LoadingProvider>
+      <ToastProvider>
+        <LoadingProvider>
+          <AuthProvider>
+            <Suspense fallback={<LoadingScreen />}>
+              <AppRoutes />
+            </Suspense>
+          </AuthProvider>
+        </LoadingProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }
