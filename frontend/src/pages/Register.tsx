@@ -49,13 +49,22 @@ function Register() {
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
-    if (!email) {
+    if (!email || !email.trim()) {
       return 'Email é obrigatório';
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    
+    const trimmedEmail = email.trim();
+    
+    if (trimmedEmail.length > 255) {
+      return 'Email muito longo (máximo 255 caracteres)';
+    }
+    
+    // Regex mais robusto para email
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmedEmail)) {
       return 'Email deve ser válido';
     }
+    
     return undefined;
   };
 
@@ -64,25 +73,51 @@ function Register() {
     if (!password) {
       return 'Senha é obrigatória';
     }
+    
+    // Não permitir senha com apenas espaços
+    if (password.trim() === '') {
+      return 'Senha não pode conter apenas espaços';
+    }
+    
     if (password.length < 8) {
       return 'Senha deve ter no mínimo 8 caracteres';
     }
+    
+    if (password.length > 72) {
+      return 'Senha muito longa (máximo 72 caracteres)';
+    }
+    
     const hasLetter = /[a-zA-Z]/.test(password);
     const hasNumber = /\d/.test(password);
+    
     if (!hasLetter || !hasNumber) {
       return 'Senha deve conter letras e números';
     }
+    
     return undefined;
   };
 
   // Validação de nome
   const validateName = (name: string): string | undefined => {
-    if (!name.trim()) {
+    if (!name || !name.trim()) {
       return 'Nome é obrigatório';
     }
-    if (name.trim().length < 3) {
+    
+    const trimmedName = name.trim();
+    
+    if (trimmedName.length < 3) {
       return 'Nome deve ter no mínimo 3 caracteres';
     }
+    
+    if (trimmedName.length > 100) {
+      return 'Nome muito longo (máximo 100 caracteres)';
+    }
+    
+    // Validar caracteres válidos (letras, espaços, acentos, hífens)
+    if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(trimmedName)) {
+      return 'Nome contém caracteres inválidos';
+    }
+    
     return undefined;
   };
 
