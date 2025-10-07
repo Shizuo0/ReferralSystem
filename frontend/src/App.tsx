@@ -10,17 +10,31 @@ const Login = lazy(() => import('./pages/Login'));
 const Profile = lazy(() => import('./pages/Profile'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-// Componente de loading simples
+// Componente de loading aprimorado
 const LoadingScreen = () => (
   <div style={{
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    fontSize: '18px',
-    color: 'var(--text-secondary)',
+    gap: '16px',
   }}>
-    <div className="animate-pulse">Carregando...</div>
+    <div className="spinner-large" style={{
+      width: '48px',
+      height: '48px',
+      border: '4px solid rgba(139, 92, 246, 0.2)',
+      borderTopColor: 'var(--primary-color)',
+      borderRadius: '50%',
+      animation: 'spin 0.8s linear infinite',
+    }}></div>
+    <p style={{ 
+      color: 'var(--text-secondary)', 
+      fontSize: '14px',
+      animation: 'pulse 2s ease-in-out infinite',
+    }}>
+      Carregando aplicação...
+    </p>
   </div>
 );
 
