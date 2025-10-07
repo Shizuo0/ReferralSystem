@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
 import './Login.css';
@@ -9,6 +10,8 @@ interface FormErrors {
 }
 
 function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,6 +21,15 @@ function Login() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string>('');
+
+  // Verificar se usuário já está logado
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Redirecionar para perfil se já tem token
+      navigate('/profile');
+    }
+  }, [navigate]);
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
@@ -119,8 +131,8 @@ function Login() {
         localStorage.setItem('token', response.accessToken);
       }
 
-      // Navegação será adicionada no próximo commit
-      alert('Login realizado com sucesso!');
+      // Redirecionar para perfil
+      navigate('/profile');
     } catch (error) {
       const apiError = error as ApiError;
       
