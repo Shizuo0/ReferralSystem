@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
+import { clearAllCache, getAuthToken } from '../utils/cache';
 import './Profile.css';
 
 interface ProfileData {
@@ -23,12 +24,24 @@ function Profile() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
 
       if (!token) {
         navigate('/login');
         return;
       }
+
+      // Limpar dados antigos de profile antes de carregar novo
+      const keysToRemove: string[] = [];
+      
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key !== 'token' && key !== 'lastCacheClear') {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
 
       try {
         const data = await ApiService.getProfile(token);
@@ -48,10 +61,12 @@ function Profile() {
         
         setError(errorMessage);
         
-        // Se token inválido, redirecionar para login
-        if (apiError.statusCode === 401) {
-          localStorage.removeItem('token');
-          navigate('/login');
+        // Se token inválido ou usuário não encontrado, limpar e redirecionar
+        if (apiError.statusCode === 401 || apiError.statusCode === 404) {
+          clearAllCache();
+          setTimeout(() => {
+            navigate('/login');
+          }, 1000);
         }
       } finally {
         setIsLoading(false);
@@ -74,7 +89,7 @@ function Profile() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    clearAllCache();
     navigate('/login');
   };
 
