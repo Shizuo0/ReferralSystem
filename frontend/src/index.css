@@ -8,35 +8,199 @@
 }
 
 :root {
-  /* Cores - serão definidas completamente na Issue #8 */
-  --primary-color: #4f46e5;
-  --background: #f9fafb;
-  --text-color: #111827;
+  /* Cores Principais */
+  --primary-color: #667eea;
+  --primary-hover: #5568d3;
+  --primary-active: #4a5bb8;
+  
+  /* Gradientes */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  /* Cores de Status */
+  --success-color: #22c55e;
+  --success-bg: #f0fdf4;
+  --success-border: #22c55e;
+  
+  --error-color: #ef4444;
+  --error-bg: #fef2f2;
+  --error-border: #ef4444;
+  
+  --info-color: #3b82f6;
+  --warning-color: #f59e0b;
+  
+  /* Cores de Texto */
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-tertiary: #999;
+  --text-light: #6b7280;
+  
+  /* Backgrounds */
+  --bg-white: #ffffff;
+  --bg-light: #f9fafb;
+  --bg-gray: #f3f4f6;
+  
+  /* Borders */
+  --border-color: #d1d5db;
+  --border-light: #e5e7eb;
+  --border-dark: #9ca3af;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.15);
+  
+  /* Espaçamentos */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 30px;
+  --spacing-4xl: 40px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   
   /* Tipografia */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 32px;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Transições */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
 
-body {
-  margin: 0;
-  background-color: var(--background);
-  color: var(--text-color);
-  min-height: 100vh;
-}
-
-/* Links */
+/* Links Globais */
 a {
   color: var(--primary-color);
   text-decoration: none;
+  transition: all var(--transition-base);
 }
 
 a:hover {
   text-decoration: underline;
+  color: var(--primary-hover);
 }
 
-/* Será estilizado completamente na Issue #8 */
+/* Botões - Estilos Base */
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all var(--transition-base);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Inputs - Estilos Base */
+input,
+textarea,
+select {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  outline: none;
+  transition: all var(--transition-base);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Scrollbar Customizada */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-gray);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-dark);
+}
+
+/* Seleção de Texto */
+::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Classes Utilitárias */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-primary {
+  color: var(--primary-color);
+}
+
+.text-error {
+  color: var(--error-color);
+}
+
+.text-success {
+  color: var(--success-color);
+}
