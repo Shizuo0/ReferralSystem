@@ -1,13 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="ReferralHub - Sistema de indicações" />
+    <meta name="keywords" content="indicações, referência, pontos, cadastro, sistema de indicação" />
+    <meta name="author" content="ReferralHub" />
+    
+    <!-- Theme -->
+    <meta name="theme-color" content="#8b5cf6" />
+    <meta name="color-scheme" content="dark" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ReferralHub - Sistema de Indicações" />
+    <meta property="og:description" content="Compartilhe seu link e ganhe pontos a cada novo cadastro!" />
+    <meta property="og:site_name" content="ReferralHub" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="ReferralHub - Sistema de Indicações" />
+    <meta name="twitter:description" content="Compartilhe seu link e ganhe pontos a cada novo cadastro!" />
+    
+    <title>ReferralHub - Sistema de Indicações</title>
+    
+    <!-- Loading styles -->
+    <style>
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        background: #0a0a0f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+      }
+      
+      #loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(139, 92, 246, 0.2);
+        border-top-color: #8b5cf6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
+    <div id="loading-screen">
+      <div class="loading-spinner"></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      window.addEventListener('load', () => {
+        const loading = document.getElementById('loading-screen');
+        if (loading) {
+          setTimeout(() => {
+            loading.classList.add('hidden');
+            setTimeout(() => loading.remove(), 300);
+          }, 100);
+        }
+      });
+    </script>
   </body>
 </html>

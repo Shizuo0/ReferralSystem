@@ -6,14 +6,22 @@
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-xl);
   background: var(--surface-color);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
   min-width: 300px;
   max-width: 500px;
-  animation: slideInRight 0.3s ease-out, fadeIn 0.3s ease-out;
+  animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), fadeIn 0.4s ease-out;
   position: relative;
   overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.toast:hover {
+  transform: translateX(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.6);
 }
 
 .toast::before {
@@ -23,22 +31,32 @@
   top: 0;
   bottom: 0;
   width: 4px;
+  animation: toastGlow 2s ease-in-out infinite;
+}
+
+@keyframes toastGlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .toast-success::before {
-  background: var(--success-color);
+  background: linear-gradient(to bottom, var(--success-color), #16a34a);
 }
 
 .toast-error::before {
-  background: var(--error-color);
+  background: linear-gradient(to bottom, var(--error-color), #dc2626);
 }
 
 .toast-warning::before {
-  background: var(--warning-color);
+  background: linear-gradient(to bottom, var(--warning-color), #d97706);
 }
 
 .toast-info::before {
-  background: var(--info-color);
+  background: linear-gradient(to bottom, var(--info-color), #7c3aed);
 }
 
 .toast-icon {
@@ -94,12 +112,19 @@
   padding: 4px;
   font-size: 16px;
   line-height: 1;
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
   flex-shrink: 0;
+  border-radius: 4px;
 }
 
 .toast-close:hover {
   color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.1);
+}
+
+.toast-close:active {
+  transform: scale(0.95);
 }
 
 .toast-close:focus-visible {
@@ -111,10 +136,12 @@
 /* Animations */
 @keyframes slideInRight {
   from {
-    transform: translateX(100%);
+    transform: translateX(120%) scale(0.8);
+    opacity: 0;
   }
   to {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
+    opacity: 1;
   }
 }
 
@@ -127,9 +154,25 @@
   }
 }
 
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .toast {
+    min-width: unset;
+    max-width: 100%;
+  }
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .toast {
     animation: fadeIn 0.3s ease-out;
+  }
+  
+  .toast::before {
+    animation: none;
+  }
+  
+  .toast:hover {
+    transform: none;
   }
 }

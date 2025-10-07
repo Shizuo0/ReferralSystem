@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { clearAllCache, clearCacheKeepToken } from '../utils/cache';
 import { formatErrorMessage } from '../utils/errorHandler';
+import Logo from '../components/Logo';
 import './Register.css';
 
 interface FormErrors {
@@ -38,8 +39,6 @@ function Register() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
   const [referralInfo, setReferralInfo] = useState<string>('');
 
   // Capturar código de indicação da URL
@@ -151,11 +150,6 @@ function Register() {
         [name]: undefined
       }));
     }
-    
-    // Limpar erro da API quando usuário digita
-    if (apiError) {
-      setApiError('');
-    }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -171,10 +165,6 @@ function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Limpar erro e mensagem de sucesso da API
-    setApiError('');
-    setSuccessMessage('');
     
     // Limpar dados antigos de cache antes de criar nova conta
     clearCacheKeepToken();
@@ -199,8 +189,17 @@ function Register() {
 
     setErrors(newErrors);
 
-    // Se houver erros, não enviar
+    // Se houver erros, mostrar notificações toast
     if (nameError || emailError || passwordError) {
+      if (nameError) {
+        showError(nameError);
+      }
+      if (emailError) {
+        showError(emailError);
+      }
+      if (passwordError) {
+        showError(passwordError);
+      }
       return;
     }
 
@@ -217,7 +216,6 @@ function Register() {
 
       // Mostrar mensagem de sucesso
       const successMsg = `Conta criada com sucesso! Bem-vindo(a), ${formData.name}!`;
-      setSuccessMessage(`✓ ${successMsg}`);
       showSuccess(successMsg);
       
       // Redirecionar para perfil após 1.5 segundos
@@ -226,7 +224,6 @@ function Register() {
       }, 1500);
     } catch (error) {
       const errorMessage = formatErrorMessage(error);
-      setApiError(errorMessage);
       showError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -236,6 +233,7 @@ function Register() {
   return (
     <div className="register-container">
       <div className="register-card">
+        <Logo size="large" />
         <h1>Criar Conta</h1>
         <p className="register-subtitle">
           Cadastre-se e comece a ganhar pontos por indicações
@@ -248,18 +246,6 @@ function Register() {
         )}
         
         <form onSubmit={handleSubmit} className="register-form" noValidate>
-          {successMessage && (
-            <div className="api-success">
-              {successMessage}
-            </div>
-          )}
-
-          {apiError && (
-            <div className="api-error">
-              {apiError}
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="name">Nome Completo</label>
             <input

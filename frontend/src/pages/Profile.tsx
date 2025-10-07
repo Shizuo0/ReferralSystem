@@ -6,6 +6,7 @@ import { ApiService } from '../services/api';
 import { clearCacheKeepToken, getAuthToken } from '../utils/cache';
 import { formatErrorMessage } from '../utils/errorHandler';
 import { ProfileSkeleton } from '../components/SkeletonLoader';
+import Logo from '../components/Logo';
 import './Profile.css';
 
 interface ProfileData {
@@ -125,6 +126,7 @@ function Profile() {
   return (
     <div className="profile-container">
       <div className="profile-card">
+        <Logo size="small" />
         <div className="profile-header">
           <div>
             <h1>Meu Perfil</h1>
@@ -136,7 +138,7 @@ function Profile() {
             )}
           </div>
           <button onClick={handleLogoutClick} className="logout-button" title="Sair da conta">
-            <span className="logout-icon">🚪</span> Sair
+            <span className="logout-icon">↩</span> Sair
           </button>
         </div>
 

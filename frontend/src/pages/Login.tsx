@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { clearCacheKeepToken } from '../utils/cache';
 import { formatErrorMessage } from '../utils/errorHandler';
+import Logo from '../components/Logo';
 import './Login.css';
 
 interface FormErrors {
@@ -26,7 +27,6 @@ function Login() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState<string>('');
 
   // Mostrar mensagem se sessão expirou
   useEffect(() => {
@@ -90,11 +90,6 @@ function Login() {
         [name]: undefined
       }));
     }
-    
-    // Limpar erro da API quando usuário digita
-    if (apiError) {
-      setApiError('');
-    }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -110,9 +105,6 @@ function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Limpar erro da API
-    setApiError('');
     
     // Limpar dados antigos de cache (mantém apenas token se houver)
     clearCacheKeepToken();
@@ -134,8 +126,14 @@ function Login() {
 
     setErrors(newErrors);
 
-    // Se houver erros, não enviar
+    // Se houver erros, mostrar notificações toast
     if (emailError || passwordError) {
+      if (emailError) {
+        showError(emailError);
+      }
+      if (passwordError) {
+        showError(passwordError);
+      }
       return;
     }
 
@@ -153,7 +151,6 @@ function Login() {
       navigate('/profile');
     } catch (error) {
       const errorMessage = formatErrorMessage(error);
-      setApiError(errorMessage);
       showError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -163,18 +160,13 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-card">
+        <Logo size="large" />
         <h1>Entrar</h1>
         <p className="login-subtitle">
           Acesse sua conta para ver sua pontuação
         </p>
         
         <form onSubmit={handleSubmit} className="login-form" noValidate>
-          {apiError && (
-            <div className="api-error">
-              {apiError}
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
