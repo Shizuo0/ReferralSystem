@@ -1,18 +1,57 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Register from './pages/Register';
-import Profile from './pages/Profile';
-import Login from './pages/Login';
+import { lazy, Suspense } from 'react';
+import { PrivateRoute } from './components/PrivateRoute';
+import { useRouteCache } from './hooks/useRouteCache';
 import './App.css';
+
+// Lazy loading das páginas para reduzir bundle inicial
+const Register = lazy(() => import('./pages/Register'));
+const Login = lazy(() => import('./pages/Login'));
+const Profile = lazy(() => import('./pages/Profile'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Componente de loading simples
+const LoadingScreen = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    fontSize: '18px',
+    color: 'var(--text-secondary)',
+  }}>
+    <div className="animate-pulse">Carregando...</div>
+  </div>
+);
+
+// Wrapper que limpa cache ao mudar de rota
+function AppRoutes() {
+  useRouteCache(); // Limpa cache de dados antigos a cada mudança de rota
+  
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/register" replace />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<Login />} />
+      <Route 
+        path="/profile" 
+        element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        } 
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/register" replace />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
+      <Suspense fallback={<LoadingScreen />}>
+        <AppRoutes />
+      </Suspense>
     </BrowserRouter>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
+import { clearAllCache, clearCacheKeepToken, setAuthToken } from '../utils/cache';
 import './Login.css';
 
 interface FormErrors {
@@ -26,10 +27,21 @@ function Login() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Redirecionar para perfil se já tem token
+      // Verificar se token é válido antes de redirecionar
+      // Se não for, será tratado na página de perfil
       navigate('/profile');
     }
   }, [navigate]);
+
+  // Limpar cache e localStorage
+  const handleClearCache = () => {
+    clearAllCache();
+    setApiError('');
+    setFormData({ email: '', password: '' });
+    
+    // Recarregar a página para garantir limpeza completa
+    window.location.reload();
+  };
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
@@ -95,6 +107,9 @@ function Login() {
 
     // Limpar erro da API
     setApiError('');
+    
+    // Limpar dados antigos de cache (mantém apenas token se houver)
+    clearCacheKeepToken();
 
     // Marcar todos os campos como touched
     setTouched({
@@ -126,9 +141,9 @@ function Login() {
 
       console.log('Login bem-sucedido!', response);
       
-      // Salvar token no localStorage
+      // Salvar token no localStorage usando utilitário
       if (response.accessToken) {
-        localStorage.setItem('token', response.accessToken);
+        setAuthToken(response.accessToken);
       }
 
       // Redirecionar para perfil
@@ -206,8 +221,19 @@ function Login() {
             {isLoading ? 'Entrando...' : 'Entrar'}
           </button>
 
+          {apiError && (
+            <button 
+              type="button" 
+              onClick={handleClearCache}
+              className="clear-cache-button"
+              style={{ marginTop: '10px' }}
+            >
+              🔄 Limpar Cache e Tentar Novamente
+            </button>
+          )}
+
           <p className="form-footer">
-            Não tem uma conta? <a href="/register">Cadastre-se</a>
+            Não tem uma conta? <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Cadastre-se</a>
           </p>
         </form>
       </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
+import { clearAllCache, clearCacheKeepToken, hasActiveSession } from '../utils/cache';
 import './Register.css';
 
 interface FormErrors {
@@ -15,6 +16,15 @@ function Register() {
   const navigate = useNavigate();
   const referralCodeFromUrl = searchParams.get('ref');
 
+  // Detectar se há sessão ativa e limpar automaticamente
+  useEffect(() => {
+    // Se há uma sessão ativa (token existe)
+    if (hasActiveSession()) {
+      // Limpar automaticamente para evitar conflitos
+      clearAllCache();
+    }
+  }, [referralCodeFromUrl]);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -25,6 +35,7 @@ function Register() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
   const [referralInfo, setReferralInfo] = useState<string>('');
 
   // Capturar código de indicação da URL
@@ -117,8 +128,12 @@ function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Limpar erro da API
+    // Limpar erro e mensagem de sucesso da API
     setApiError('');
+    setSuccessMessage('');
+    
+    // Limpar dados antigos de cache antes de criar nova conta
+    clearCacheKeepToken();
 
     // Marcar todos os campos como touched
     setTouched({
@@ -158,13 +173,16 @@ function Register() {
 
       console.log('Registro bem-sucedido!', response);
       
-      // Salvar token no localStorage
-      if (response.accessToken) {
-        localStorage.setItem('token', response.accessToken);
-      }
-
-      // Redirecionar para perfil
-      navigate('/profile');
+      // IMPORTANTE: Garantir que não há token salvo antes de redirecionar para login
+      clearAllCache();
+      
+      // Mostrar mensagem de sucesso e redirecionar para login
+      setSuccessMessage(`✓ Conta criada com sucesso! Bem-vindo(a), ${response.user.name}! Redirecionando para login...`);
+      
+      // Redirecionar após 2 segundos
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
       const apiError = error as ApiError;
       
@@ -200,6 +218,12 @@ function Register() {
         )}
         
         <form onSubmit={handleSubmit} className="register-form" noValidate>
+          {successMessage && (
+            <div className="api-success">
+              {successMessage}
+            </div>
+          )}
+
           {apiError && (
             <div className="api-error">
               {apiError}
@@ -267,7 +291,7 @@ function Register() {
           </button>
 
           <p className="form-footer">
-            Já tem uma conta? <a href="/login">Faça login</a>
+            Já tem uma conta? <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Faça login</a>
           </p>
         </form>
       </div>

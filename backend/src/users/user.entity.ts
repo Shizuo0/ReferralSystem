@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 
 @Entity('users')
@@ -17,6 +18,7 @@ export class User {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
+  @Index() // Índice para busca rápida por email (login)
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
@@ -26,6 +28,7 @@ export class User {
   @Column({ type: 'integer', default: 0 })
   score: number; // Pontuação do usuário
 
+  @Index() // Índice para busca rápida por código de indicação
   @Column({ type: 'varchar', length: 10, unique: true })
   referralCode: string; // Código único de indicação
 
