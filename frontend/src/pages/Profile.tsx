@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
-import { clearAllCache, clearCacheKeepToken, getAuthToken } from '../utils/cache';
+import { clearCacheKeepToken, getAuthToken } from '../utils/cache';
 import './Profile.css';
 
 interface ProfileData {
@@ -17,17 +18,19 @@ interface ProfileData {
 
 function Profile() {
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
       const token = getAuthToken();
-
+      
       if (!token) {
-        navigate('/login');
+        logout();
         return;
       }
 
@@ -52,12 +55,11 @@ function Profile() {
         
         setError(errorMessage);
         
-        // Se token inválido ou usuário não encontrado, limpar e redirecionar
+        // Se token inválido ou usuário não encontrado, fazer logout
         if (apiError.statusCode === 401 || apiError.statusCode === 404) {
-          clearAllCache();
           setTimeout(() => {
-            navigate('/login');
-          }, 1000);
+            logout();
+          }, 1500);
         }
       } finally {
         setIsLoading(false);
@@ -65,7 +67,7 @@ function Profile() {
     };
 
     loadProfile();
-  }, [navigate]);
+  }, [logout]);
 
   const handleCopyLink = async () => {
     if (!profile) return;
@@ -79,16 +81,26 @@ function Profile() {
     }
   };
 
-  const handleLogout = () => {
-    clearAllCache();
-    navigate('/login');
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    logout();
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutConfirm(false);
   };
 
   if (isLoading) {
     return (
       <div className="profile-container">
         <div className="profile-card">
-          <p className="loading-text">Carregando perfil...</p>
+          <div className="loading-spinner-container">
+            <div className="spinner"></div>
+            <p className="loading-text">Carregando perfil...</p>
+          </div>
         </div>
       </div>
     );
@@ -100,9 +112,13 @@ function Profile() {
         <div className="profile-card">
           <div className="error-message">
             <p>{error}</p>
-            <button onClick={() => navigate('/login')} className="error-button">
-              Ir para Login
-            </button>
+            {error.includes('401') || error.includes('404') ? (
+              <p className="error-hint">Redirecionando para login...</p>
+            ) : (
+              <button onClick={() => navigate('/login')} className="error-button">
+                Ir para Login
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -117,9 +133,17 @@ function Profile() {
     <div className="profile-container">
       <div className="profile-card">
         <div className="profile-header">
-          <h1>Meu Perfil</h1>
-          <button onClick={handleLogout} className="logout-button">
-            Sair
+          <div>
+            <h1>Meu Perfil</h1>
+            {user && (
+              <p className="user-badge">
+                <span className="badge-icon">👤</span>
+                {user.email}
+              </p>
+            )}
+          </div>
+          <button onClick={handleLogoutClick} className="logout-button" title="Sair da conta">
+            <span className="logout-icon">🚪</span> Sair
           </button>
         </div>
 
@@ -159,10 +183,12 @@ function Profile() {
               value={profile.referralLink} 
               readOnly 
               className="referral-link-input"
+              onClick={(e) => (e.target as HTMLInputElement).select()}
             />
             <button 
               onClick={handleCopyLink} 
               className={`copy-button ${copySuccess ? 'copied' : ''}`}
+              title="Copiar link de indicação"
             >
               {copySuccess ? '✓ Copiado!' : 'Copiar Link'}
             </button>
@@ -175,6 +201,24 @@ function Profile() {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmação de logout */}
+      {showLogoutConfirm && (
+        <div className="modal-overlay" onClick={handleLogoutCancel}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Confirmar Logout</h3>
+            <p>Tem certeza que deseja sair?</p>
+            <div className="modal-actions">
+              <button onClick={handleLogoutCancel} className="modal-button cancel">
+                Cancelar
+              </button>
+              <button onClick={handleLogoutConfirm} className="modal-button confirm">
+                Sim, sair
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

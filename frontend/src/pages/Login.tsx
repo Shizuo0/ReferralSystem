@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ApiService } from '../services/api';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import type { ApiError } from '../types';
-import { clearAllCache, clearCacheKeepToken, setAuthToken } from '../utils/cache';
+import { clearCacheKeepToken } from '../utils/cache';
 import './Login.css';
 
 interface FormErrors {
@@ -12,6 +12,9 @@ interface FormErrors {
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
+  const sessionExpired = (location.state as any)?.sessionExpired;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -23,25 +26,21 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string>('');
 
-  // Verificar se usuário já está logado
+  // Mostrar mensagem se sessão expirou
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Verificar se token é válido antes de redirecionar
-      // Se não for, será tratado na página de perfil
-      navigate('/profile');
+    if (sessionExpired) {
+      setApiError('Sua sessão expirou. Por favor, faça login novamente.');
     }
-  }, [navigate]);
+  }, [sessionExpired]);
 
-  // Limpar cache e localStorage
-  const handleClearCache = () => {
-    clearAllCache();
-    setApiError('');
-    setFormData({ email: '', password: '' });
-    
-    // Recarregar a página para garantir limpeza completa
-    window.location.reload();
-  };
+  // Redirecionar se já está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Redirecionar para página original ou profile
+      const from = (location.state as any)?.from?.pathname || '/profile';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
@@ -88,6 +87,11 @@ function Login() {
         ...prev,
         [name]: undefined
       }));
+    }
+    
+    // Limpar erro da API quando usuário digita
+    if (apiError) {
+      setApiError('');
     }
   };
 
@@ -137,15 +141,12 @@ function Login() {
     setIsLoading(true);
 
     try {
-      const response = await ApiService.login(formData.email, formData.password);
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      console.log('Login bem-sucedido!', response);
-      
-      // Salvar token no localStorage usando utilitário
-      if (response.accessToken) {
-        setAuthToken(response.accessToken);
-      }
-
+      // AuthContext já salva o token e atualiza o estado
       // Redirecionar para perfil
       navigate('/profile');
     } catch (error) {
@@ -194,6 +195,7 @@ function Login() {
               onBlur={handleBlur}
               placeholder="seu@email.com"
               className={touched.email && errors.email ? 'input-error' : ''}
+              autoComplete="email"
             />
             {touched.email && errors.email && (
               <span className="error-message">{errors.email}</span>
@@ -211,6 +213,7 @@ function Login() {
               onBlur={handleBlur}
               placeholder="Digite sua senha"
               className={touched.password && errors.password ? 'input-error' : ''}
+              autoComplete="current-password"
             />
             {touched.password && errors.password && (
               <span className="error-message">{errors.password}</span>
@@ -218,19 +221,15 @@ function Login() {
           </div>
 
           <button type="submit" className="submit-button" disabled={isLoading}>
-            {isLoading ? 'Entrando...' : 'Entrar'}
+            {isLoading ? (
+              <>
+                <span className="button-spinner"></span>
+                Entrando...
+              </>
+            ) : (
+              'Entrar'
+            )}
           </button>
-
-          {apiError && (
-            <button 
-              type="button" 
-              onClick={handleClearCache}
-              className="clear-cache-button"
-              style={{ marginTop: '10px' }}
-            >
-              🔄 Limpar Cache e Tentar Novamente
-            </button>
-          )}
 
           <p className="form-footer">
             Não tem uma conta? <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Cadastre-se</a>

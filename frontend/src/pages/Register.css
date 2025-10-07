@@ -205,6 +205,16 @@
   box-shadow: 0 8px 20px rgba(99, 102, 241, 0.6), 0 0 30px rgba(124, 58, 237, 0.4);
 }
 
+.button-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
 .submit-button:active {
   background: linear-gradient(135deg, #5b21b6, #6366f1);
   transform: translateY(0);
