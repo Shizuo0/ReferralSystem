@@ -10,4 +10,5 @@ export class AuthResponseDto {
 export class RegisterResponseDto {
   message: string;
   user: AuthResponseDto;
+  accessToken: string;
 }

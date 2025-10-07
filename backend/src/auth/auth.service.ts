@@ -4,6 +4,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,10 +16,12 @@ import { RegisterResponseDto, AuthResponseDto } from './dto/auth-response.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { HashUtil } from '../common/utils/hash.util';
 import { ReferralCodeUtil } from '../common/utils/referral-code.util';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
+import type { JwtPayload } from './interfaces/jwt-payload.interface';
+
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -27,6 +30,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
     const { name, email, password, referralCode } = registerDto;
+    this.logger.log(`Tentativa de registro: ${email}`);
 
     // Verificar se o email já está cadastrado
     const existingUser = await this.userRepository.findOne({
@@ -34,6 +38,7 @@ export class AuthService {
     });
 
     if (existingUser) {
+      this.logger.warn(`Registro falhou: Email já cadastrado - ${email}`);
       throw new ConflictException('Email já está cadastrado');
     }
 
@@ -45,8 +50,10 @@ export class AuthService {
       });
 
       if (!referrer) {
+        this.logger.warn(`Código de indicação inválido: ${referralCode}`);
         throw new BadRequestException('Código de indicação inválido');
       }
+      this.logger.log(`Indicação válida: ${referralCode} (referrer: ${referrer.email})`);
     }
 
     // Hash da senha antes de salvar
@@ -66,10 +73,12 @@ export class AuthService {
     });
 
     const savedUser = await this.userRepository.save(newUser);
+    this.logger.log(`Usuário registrado com sucesso: ${savedUser.email} (ID: ${savedUser.id})`);
 
     // Incrementar pontuação do usuário que indicou
     if (referrer) {
       await this.incrementReferrerScore(referrer.id);
+      this.logger.log(`Pontuação incrementada para ${referrer.email}`);
     }
 
     // Retornar dados do usuário (sem a senha)
@@ -82,9 +91,14 @@ export class AuthService {
       createdAt: savedUser.createdAt,
     };
 
+   // Gerar JWT token
+    const accessToken = await this.generateToken(savedUser);
+    this.logger.log(`Token JWT gerado para ${savedUser.email}`);
+
     return {
       message: 'Usuário registrado com sucesso',
       user: userResponse,
+      accessToken,
     };
   }
 
@@ -103,6 +117,7 @@ export class AuthService {
       });
 
       if (!existing) {
+        this.logger.debug(`Código de indicação gerado (nome): ${code}`);
         return code;
       }
     }
@@ -115,6 +130,7 @@ export class AuthService {
       });
 
       if (!existing) {
+        this.logger.debug(`Código de indicação gerado (aleatório): ${code}`);
         return code;
       }
     }
@@ -140,12 +156,15 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     const { email, password } = loginDto;
 
+    this.logger.log(`Tentativa de login: ${email}`);
+
     // Buscar usuário pelo email
     const user = await this.userRepository.findOne({
       where: { email },
     });
 
     if (!user) {
+      this.logger.warn(`Login falhou: Usuário não encontrado - ${email}`);
       throw new UnauthorizedException('Email ou senha inválidos');
     }
 
@@ -156,8 +175,11 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
+      this.logger.warn(`Login falhou: Senha inválida - ${email}`);
       throw new UnauthorizedException('Email ou senha inválidos');
     }
+
+    this.logger.log(`Login bem-sucedido: ${user.email}`);
 
     // Retornar dados do usuário (sem a senha)
     const userResponse: AuthResponseDto = {
@@ -171,6 +193,7 @@ export class AuthService {
 
     // Gerar JWT token
     const accessToken = await this.generateToken(user);
+    this.logger.log(`Token JWT gerado para ${user.email}`);
 
     return {
       message: 'Login realizado com sucesso',
@@ -188,6 +211,13 @@ export class AuthService {
       email: user.email,
     };
 
-    return this.jwtService.signAsync(payload);
+    try {
+      const token = await this.jwtService.signAsync(payload);
+      this.logger.debug(`Token gerado com sucesso para user ${user.id}`);
+      return token;
+    } catch (error) {
+      this.logger.error(`Erro ao gerar token para ${user.email}:`, error);
+      throw new InternalServerErrorException('Erro ao gerar token de autenticação');
+    }
   }
 }
