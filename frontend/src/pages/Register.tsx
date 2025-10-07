@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
-import { clearAllCache, hasActiveSession } from '../utils/cache';
+import { clearAllCache, clearCacheKeepToken, hasActiveSession } from '../utils/cache';
 import './Register.css';
 
 interface FormErrors {
@@ -133,16 +133,7 @@ function Register() {
     setSuccessMessage('');
     
     // Limpar dados antigos de cache antes de criar nova conta
-    const keysToRemove: string[] = [];
-    
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key !== 'token') {
-        keysToRemove.push(key);
-      }
-    }
-    
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    clearCacheKeepToken();
 
     // Marcar todos os campos como touched
     setTouched({

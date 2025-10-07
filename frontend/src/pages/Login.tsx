@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
-import { clearAllCache, setAuthToken } from '../utils/cache';
+import { clearAllCache, clearCacheKeepToken, setAuthToken } from '../utils/cache';
 import './Login.css';
 
 interface FormErrors {
@@ -109,18 +109,7 @@ function Login() {
     setApiError('');
     
     // Limpar dados antigos de cache (mantém apenas token se houver)
-    // Isso garante que não há profile/dados antigos ao fazer novo login
-    const currentToken = localStorage.getItem('token');
-    const keysToRemove: string[] = [];
-    
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key !== 'token') {
-        keysToRemove.push(key);
-      }
-    }
-    
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    clearCacheKeepToken();
 
     // Marcar todos os campos como touched
     setTouched({

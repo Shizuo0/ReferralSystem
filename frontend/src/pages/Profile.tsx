@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import type { ApiError } from '../types';
-import { clearAllCache, getAuthToken } from '../utils/cache';
+import { clearAllCache, clearCacheKeepToken, getAuthToken } from '../utils/cache';
 import './Profile.css';
 
 interface ProfileData {
@@ -32,16 +32,7 @@ function Profile() {
       }
 
       // Limpar dados antigos de profile antes de carregar novo
-      const keysToRemove: string[] = [];
-      
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key !== 'token' && key !== 'lastCacheClear') {
-          keysToRemove.push(key);
-        }
-      }
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+      clearCacheKeepToken();
 
       try {
         const data = await ApiService.getProfile(token);

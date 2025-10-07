@@ -45,12 +45,35 @@ export const hasActiveSession = (): boolean => {
 };
 
 /**
- * Limpa apenas o token de autenticação
+ * Limpa cache mas mantém o token de autenticação
+ * Útil para limpar dados antigos sem fazer logout
  */
-export const clearAuthToken = (): void => {
-  localStorage.removeItem('token');
-  sessionStorage.removeItem('token');
-  console.log('🔐 Token de autenticação removido');
+export const clearCacheKeepToken = (): void => {
+  const token = localStorage.getItem('token');
+  const lastCacheClear = sessionStorage.getItem('lastCacheClear');
+  
+  const keysToRemove: string[] = [];
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key !== 'token') {
+      keysToRemove.push(key);
+    }
+  }
+  
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+  
+  // Restaurar items importantes
+  if (token) {
+    localStorage.setItem('token', token);
+  }
+  if (lastCacheClear) {
+    sessionStorage.setItem('lastCacheClear', lastCacheClear);
+  }
+  
+  if (import.meta.env.DEV) {
+    console.log('🔄 Cache de dados limpo (token preservado)');
+  }
 };
 
 /**
@@ -67,5 +90,7 @@ export const getAuthToken = (): string | null => {
  */
 export const setAuthToken = (token: string): void => {
   localStorage.setItem('token', token);
-  console.log('✓ Token de autenticação salvo');
+  if (import.meta.env.DEV) {
+    console.log('✓ Token de autenticação salvo');
+  }
 };
