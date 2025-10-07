@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import { AuthProvider } from './contexts/AuthContext';
 import { PrivateRoute } from './components/PrivateRoute';
 import { useRouteCache } from './hooks/useRouteCache';
 import './App.css';
@@ -63,9 +64,11 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingScreen />}>
-        <AppRoutes />
-      </Suspense>
+      <AuthProvider>
+        <Suspense fallback={<LoadingScreen />}>
+          <AppRoutes />
+        </Suspense>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
