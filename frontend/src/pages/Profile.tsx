@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { ApiService } from '../services/api';
-import type { ApiError } from '../types';
 import { clearCacheKeepToken, getAuthToken } from '../utils/cache';
+import { formatErrorMessage } from '../utils/errorHandler';
 import { ProfileSkeleton } from '../components/SkeletonLoader';
 import './Profile.css';
 
@@ -20,6 +21,7 @@ interface ProfileData {
 function Profile() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -42,21 +44,12 @@ function Profile() {
         const data = await ApiService.getProfile(token);
         setProfile(data);
       } catch (error) {
-        const apiError = error as ApiError;
-        
-        // Tratar mensagem de erro (pode ser string ou array)
-        let errorMessage = 'Erro ao carregar perfil';
-        if (apiError.message) {
-          if (Array.isArray(apiError.message)) {
-            errorMessage = apiError.message.join(', ');
-          } else {
-            errorMessage = apiError.message;
-          }
-        }
-        
+        const errorMessage = formatErrorMessage(error);
         setError(errorMessage);
+        showError(errorMessage);
         
-        // Se token inválido ou usuário não encontrado, fazer logout
+        // Se erro de autenticação, fazer logout
+        const apiError = error as any;
         if (apiError.statusCode === 401 || apiError.statusCode === 404) {
           setTimeout(() => {
             logout();
@@ -68,31 +61,33 @@ function Profile() {
     };
 
     loadProfile();
-  }, [logout]);
+  }, [logout, showError]);
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = useCallback(async () => {
     if (!profile) return;
 
     try {
       await navigator.clipboard.writeText(profile.referralLink);
       setCopySuccess(true);
+      showSuccess('Link copiado para área de transferência!');
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       console.error('Erro ao copiar link:', err);
+      showError('Não foi possível copiar o link. Tente novamente.');
     }
-  };
+  }, [profile, showSuccess, showError]);
 
-  const handleLogoutClick = () => {
+  const handleLogoutClick = useCallback(() => {
     setShowLogoutConfirm(true);
-  };
+  }, []);
 
-  const handleLogoutConfirm = () => {
+  const handleLogoutConfirm = useCallback(() => {
     logout();
-  };
+  }, [logout]);
 
-  const handleLogoutCancel = () => {
+  const handleLogoutCancel = useCallback(() => {
     setShowLogoutConfirm(false);
-  };
+  }, []);
 
   if (isLoading) {
     return (

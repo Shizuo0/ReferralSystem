@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import type { ApiError } from '../types';
+import { useToast } from '../contexts/ToastContext';
 import { clearAllCache, clearCacheKeepToken } from '../utils/cache';
+import { formatErrorMessage } from '../utils/errorHandler';
 import './Register.css';
 
 interface FormErrors {
@@ -15,6 +16,7 @@ function Register() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { register: registerUser, isAuthenticated } = useAuth();
+  const { showSuccess, showError } = useToast();
   const referralCodeFromUrl = searchParams.get('ref');
 
   // Redirecionar se já está autenticado
@@ -213,29 +215,19 @@ function Register() {
         referralCode: referralCodeFromUrl || undefined,
       });
 
-      // AuthContext já salva o token e atualiza o estado
-      // Mostrar mensagem de sucesso e redirecionar
-      setSuccessMessage(`✓ Conta criada com sucesso! Bem-vindo(a), ${formData.name}!`);
+      // Mostrar mensagem de sucesso
+      const successMsg = `Conta criada com sucesso! Bem-vindo(a), ${formData.name}!`;
+      setSuccessMessage(`✓ ${successMsg}`);
+      showSuccess(successMsg);
       
       // Redirecionar para perfil após 1.5 segundos
       setTimeout(() => {
         navigate('/profile');
       }, 1500);
     } catch (error) {
-      const apiError = error as ApiError;
-      
-      // Tratar mensagens de erro
-      let errorMessage = 'Erro ao criar conta. Tente novamente.';
-      
-      if (apiError.message) {
-        if (Array.isArray(apiError.message)) {
-          errorMessage = apiError.message.join(', ');
-        } else {
-          errorMessage = apiError.message;
-        }
-      }
-      
+      const errorMessage = formatErrorMessage(error);
       setApiError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
