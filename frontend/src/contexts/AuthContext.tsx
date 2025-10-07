@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
@@ -28,42 +28,128 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Intervalo de verificação de expiração de token (a cada 1 minuto)
+const TOKEN_CHECK_INTERVAL = 60000;
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Verificar autenticação ao carregar a aplicação
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  const checkIntervalRef = useRef<number | null>(null);
 
   // Verificar se há token válido e extrair dados do usuário
-  const checkAuth = () => {
+  const checkAuth = useCallback(() => {
     const token = getAuthToken();
     
     if (!token) {
       setUser(null);
       setIsLoading(false);
-      return;
+      return false;
     }
 
     // Verificar se token expirou
     if (isTokenExpired(token)) {
+      console.warn('Token expirado, limpando sessão');
       clearAllCache(true);
       setUser(null);
       setIsLoading(false);
-      return;
+      return false;
     }
 
     // Extrair dados do usuário do token
     const userData = getUserFromToken(token);
     if (userData) {
       setUser(userData);
+      setIsLoading(false);
+      return true;
     }
 
+    setUser(null);
     setIsLoading(false);
-  };
+    return false;
+  }, []);
+
+  // Verificar autenticação ao carregar a aplicação
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Verificação periódica de expiração de token
+  useEffect(() => {
+    // Limpar intervalo anterior se existir
+    if (checkIntervalRef.current) {
+      clearInterval(checkIntervalRef.current);
+    }
+
+    // Configurar nova verificação periódica
+    checkIntervalRef.current = setInterval(() => {
+      const token = getAuthToken();
+      
+      if (token && isTokenExpired(token)) {
+        console.warn('Token expirou durante a sessão');
+        clearAllCache(true);
+        setUser(null);
+        
+        // Redirecionar para login se estiver em página protegida
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          navigate('/login', { state: { sessionExpired: true } });
+        }
+      }
+    }, TOKEN_CHECK_INTERVAL);
+
+    // Cleanup ao desmontar
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+      }
+    };
+  }, [navigate]);
+
+  // Sincronizar estado entre abas (storage event)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // Se o token foi removido em outra aba
+      if (e.key === 'token' && !e.newValue && user) {
+        console.log('Token removido em outra aba, fazendo logout');
+        setUser(null);
+        navigate('/login');
+      }
+      
+      // Se o token foi adicionado em outra aba
+      if (e.key === 'token' && e.newValue && !user) {
+        console.log('Token adicionado em outra aba, atualizando estado');
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [user, navigate, checkAuth]);
+
+  // Listener para quando a aba fica visível novamente
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Re-verificar autenticação quando a aba volta a ficar visível
+        const token = getAuthToken();
+        if (token && isTokenExpired(token)) {
+          console.warn('Token expirou enquanto aba estava inativa');
+          clearAllCache(true);
+          setUser(null);
+          navigate('/login', { state: { sessionExpired: true } });
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [navigate]);
 
   // Função de login
   const login = async (data: LoginData) => {
@@ -110,11 +196,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // Função de logout
-  const logout = () => {
+  const logout = useCallback(() => {
+    // Limpar intervalo de verificação
+    if (checkIntervalRef.current) {
+      clearInterval(checkIntervalRef.current);
+      checkIntervalRef.current = null;
+    }
+    
     clearAllCache(true);
     setUser(null);
     navigate('/login');
-  };
+  }, [navigate]);
 
   const value: AuthContextType = {
     user,

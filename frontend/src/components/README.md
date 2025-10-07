@@ -2,32 +2,17 @@
 
 Esta pasta contém componentes compartilhados da aplicação.
 
-## PrivateRoute
+## PrivateRoute (Otimizado com AuthContext)
 
-Componente de rota protegida que garante que apenas usuários autenticados possam acessar determinadas páginas.
+Componente para proteger rotas que exigem autenticação. Agora integrado com o AuthContext para melhor performance e sincronização de estado.
 
 ### Funcionalidades
 
-✅ **Validação de Token**
-- Verifica presença do token no localStorage
-- Decodifica JWT para validar estrutura
-- Verifica expiração do token
-- Remove token automaticamente se inválido/expirado
-
-✅ **Loading State**
-- Mostra spinner enquanto valida token
-- Mensagem "Verificando autenticação..."
-- Evita flicker de redirecionamento
-
-✅ **Redirecionamento Inteligente**
-- Salva localização original em `state`
-- Permite voltar após login
-- Usa `replace` para não poluir histórico
-
-✅ **Limpeza Automática**
-- Remove token expirado
-- Limpa cache completo ao detectar problemas
-- Evita estados inconsistentes
+1. **Integração com AuthContext**: Usa o estado global de autenticação (não duplica lógica)
+2. **Loading State Sincronizado**: Usa `isLoading` do AuthContext
+3. **Validação Centralizada**: Token é validado uma vez no AuthContext
+4. **Redirect com Estado**: Preserva a localização original para redirect após login
+5. **Performance Otimizada**: Não re-valida token se já foi validado
 
 ### Uso
 
@@ -46,145 +31,144 @@ import Profile from './pages/Profile';
 />
 ```
 
-### Fluxo de Validação
+### Como Funciona (Fluxo Otimizado)
 
 ```
-1. Usuário acessa rota protegida
-2. PrivateRoute é renderizado
-3. Estado: isValidating = true
+1. Componente monta
+2. Lê estado do AuthContext:
+   - isAuthenticated
+   - isLoading
+3. Se isLoading = true:
    → Mostra loading spinner
-4. Busca token do localStorage
-5. Se não tem token:
-   → Redireciona para /login
-6. Se tem token:
-   → Decodifica JWT
-   → Verifica estrutura
-   → Verifica expiração (exp < now)
-7. Token válido:
-   → isAuthenticated = true
+4. Se isLoading = false && !isAuthenticated:
+   → Redireciona para /login com location.state
+5. Se isLoading = false && isAuthenticated:
    → Renderiza children (página protegida)
-8. Token inválido/expirado:
-   → clearAllCache()
-   → Redireciona para /login
+```
+
+**Vantagens vs. versão anterior:**
+- ✅ Não duplica validação de token
+- ✅ Estado sincronizado globalmente
+- ✅ Menos re-renders
+- ✅ Mais simples e mantível
+- ✅ Sincronizado com verificação periódica do AuthContext
+
+### Código Completo
+
+```tsx
+import type { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+
+interface PrivateRouteProps {
+  children: ReactNode;
+}
+
+export const PrivateRoute = ({ children }: PrivateRouteProps) => {
+  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
 ```
 
 ### Estados
 
 | Estado | Tipo | Descrição |
 |--------|------|-----------|
-| `isValidating` | boolean | Validando token |
-| `isAuthenticated` | boolean | Token válido |
+| `isLoading` | `boolean` | Vem do AuthContext, indica validação inicial |
+| `isAuthenticated` | `boolean` | Vem do AuthContext, indica se usuário está logado |
+| `location` | `Location` | Localização atual para preservar no redirect |
 
-### Validações de Token
+### Fluxo de Navegação
 
-#### 1. Presença
-```typescript
-const token = getAuthToken();
-if (!token) {
-  // Redirecionar para login
-}
+#### Cenário 1: Usuário não autenticado tenta acessar /profile
+
+```
+1. Acessa /profile
+2. PrivateRoute monta
+3. isAuthenticated = false
+4. Redireciona para /login
+5. location.state = { from: { pathname: '/profile' } }
+6. Após login bem-sucedido:
+   → Login.tsx lê location.state.from
+   → Redireciona para /profile (página original)
 ```
 
-#### 2. Estrutura JWT
-```typescript
-const payload = parseJWT(token);
-if (!payload) {
-  // Token malformado
-  clearAllCache();
-}
+#### Cenário 2: Usuário já autenticado acessa /profile
+
+```
+1. Acessa /profile
+2. PrivateRoute monta
+3. isLoading = true (brevemente)
+4. AuthContext valida token
+5. isLoading = false, isAuthenticated = true
+6. Renderiza <Profile />
 ```
 
-#### 3. Expiração
-```typescript
-const currentTime = Math.floor(Date.now() / 1000);
-if (payload.exp < currentTime) {
-  // Token expirado
-  clearAllCache();
-}
+#### Cenário 3: Token expira durante a sessão
+
 ```
-
-### Benefícios vs Versão Simples
-
-#### Antes (Versão Simples)
-```tsx
-export const PrivateRoute = ({ children }) => {
-  const token = getAuthToken();
-  return token ? <>{children}</> : <Navigate to="/login" />;
-};
+1. Usuário está em /profile
+2. AuthContext detecta token expirado (verificação periódica)
+3. clearAllCache()
+4. setUser(null) → isAuthenticated = false
+5. navigate('/login', { sessionExpired: true })
+6. Login.tsx mostra: "Sua sessão expirou"
 ```
-
-**Problemas:**
-- ❌ Não valida expiração
-- ❌ Não mostra loading
-- ❌ Flicker ao redirecionar
-- ❌ Token inválido não é removido
-
-#### Depois (Versão Aprimorada)
-```tsx
-export const PrivateRoute = ({ children }) => {
-  const [isValidating, setIsValidating] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  useEffect(() => {
-    // Validação assíncrona completa
-  }, []);
-  
-  if (isValidating) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" />;
-  return <>{children}</>;
-};
-```
-
-**Benefícios:**
-- ✅ Valida expiração
-- ✅ Loading state suave
-- ✅ Sem flicker
-- ✅ Limpeza automática
 
 ### Segurança
 
-#### O que protege
-✅ Acesso não autorizado a rotas
-✅ Tokens expirados
-✅ Tokens malformados
-✅ localStorage vazio
+✅ **Token Validation**
+- Validação centralizada no AuthContext
+- Verificação periódica a cada 1 minuto
+- Validação ao retornar à aba
 
-#### O que NÃO protege
-⚠️ Token roubado (XSS)
-⚠️ Man-in-the-middle (MITM)
-⚠️ CSRF (use cookies httpOnly para proteção completa)
+✅ **Auto-Logout**
+- Token expirado → logout automático
+- Token inválido → logout automático
+- Sincronizado entre abas
 
-**Nota:** Para produção, considere:
-- Cookies httpOnly + SameSite
-- Token refresh automático
-- Revogação de tokens (blacklist)
+✅ **Estado Limpo**
+- clearAllCache() remove tudo
+- Sem estados inconsistentes
+- Re-validação ao reload
 
 ### Performance
 
-- Validação rápida (< 50ms)
-- Sem requisições HTTP desnecessárias
-- Cache de validação em memória (futuro)
+- ✅ **Validação única**: Token validado uma vez no AuthContext
+- ✅ **Menos re-renders**: Usa estado global ao invés de local
+- ✅ **Loading otimizado**: Loading state global sincronizado
+- ✅ **Cache inteligente**: AuthContext mantém userData em memória
 
 ### Melhorias Futuras
 
-- [ ] Token refresh automático
-- [ ] Validação com backend (optional)
-- [ ] Cache de validação
-- [ ] Retry em caso de erro de rede
-- [ ] Timeout configurável
+- [ ] Suporte a permissões/roles
+- [ ] Redirect customizável via props
+- [ ] Loading customizável via props
+- [x] ~~Cache de validação~~ (agora usa AuthContext)
+- [x] ~~Evitar duplicação de lógica~~ (integrado com AuthContext)
 
 ---
 
-## Outros Componentes (Futuro)
+## Estrutura
 
-### LoadingSpinner
-Spinner reutilizável para loading states.
+```
+components/
+├── PrivateRoute.tsx   # Rota protegida otimizada
+└── README.md          # Esta documentação
+```
 
-### ErrorBoundary
-Captura erros de React e mostra fallback.
-
-### Toast
-Notificações temporárias.
-
-### Modal
-Diálogos modais reutilizáveis.
+**Próximos componentes:**
+- ErrorBoundary (tratamento de erros)
+- Toast/Notification (alertas globais)
+- Modal (modais reutilizáveis)
+- Form components (inputs, buttons, etc)

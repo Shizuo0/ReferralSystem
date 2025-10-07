@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import type { ApiError } from '../types';
 import { clearCacheKeepToken } from '../utils/cache';
@@ -12,7 +12,9 @@ interface FormErrors {
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isAuthenticated } = useAuth();
+  const sessionExpired = (location.state as any)?.sessionExpired;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -24,12 +26,21 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string>('');
 
+  // Mostrar mensagem se sessão expirou
+  useEffect(() => {
+    if (sessionExpired) {
+      setApiError('Sua sessão expirou. Por favor, faça login novamente.');
+    }
+  }, [sessionExpired]);
+
   // Redirecionar se já está autenticado
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/profile');
+      // Redirecionar para página original ou profile
+      const from = (location.state as any)?.from?.pathname || '/profile';
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location]);
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {

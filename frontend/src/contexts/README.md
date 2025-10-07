@@ -216,11 +216,20 @@ Ao carregar a aplicação:
 ✅ Validação de token centralizada
 ✅ Limpeza automática de tokens expirados
 ✅ Navegação automática no logout
+✅ Verificação periódica de expiração (a cada 1 minuto)
+✅ Validação ao retornar à aba (visibilitychange)
+
+#### Persistência
+✅ Estado persiste após reload da página
+✅ Sincronização entre múltiplas abas (storage events)
+✅ Auto-logout quando token expira
+✅ Mensagem de sessão expirada
 
 #### UX
 ✅ Loading state global
 ✅ Transições suaves
 ✅ Sem flickering
+✅ Redirect para página original após login
 
 ### Exemplo Completo: Login Page
 
@@ -279,13 +288,59 @@ function Profile() {
 - ✅ Validação de token uma vez por sessão
 - ✅ Cache em memória para evitar re-parsing
 
+## Funcionalidades Avançadas de Persistência
+
+### 1. Verificação Periódica de Token
+O AuthContext verifica automaticamente se o token expirou a cada 1 minuto:
+
+```typescript
+const TOKEN_CHECK_INTERVAL = 60000; // 1 minuto
+
+// Se token expirar durante a sessão:
+// → clearAllCache()
+// → setUser(null)
+// → navigate('/login', { sessionExpired: true })
+```
+
+### 2. Sincronização Entre Abas
+Usando `storage` events, o estado é sincronizado entre múltiplas abas:
+
+```typescript
+// Se usuário faz logout em uma aba:
+// → Todas as outras abas também fazem logout
+
+// Se usuário faz login em uma aba:
+// → Todas as outras abas atualizam o estado
+```
+
+### 3. Validação ao Retornar à Aba
+Quando o usuário volta para a aba (visibilitychange):
+
+```typescript
+// Se token expirou enquanto aba estava inativa:
+// → Auto-logout com mensagem de sessão expirada
+```
+
+### 4. Redirect Inteligente
+Após login, redireciona para a página original:
+
+```typescript
+// Usuário tentou acessar /profile
+// → Foi redirecionado para /login
+// → Fez login
+// → Volta para /profile (não para homepage)
+```
+
 ### Melhorias Futuras
 
 - [ ] Token refresh automático
 - [ ] Retry em erros de rede
-- [ ] Persistência de user data (evitar decode toda hora)
 - [ ] Timeout configurável
 - [ ] Eventos de auth (onLogin, onLogout)
+- [x] ~~Verificação periódica de expiração~~
+- [x] ~~Sincronização entre abas~~
+- [x] ~~Validação ao retornar à aba~~
+- [x] ~~Redirect inteligente~~
 
 ---
 
