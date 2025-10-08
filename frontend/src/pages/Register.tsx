@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import type { ApiError } from '../types';
+import { useToast } from '../contexts/ToastContext';
 import { clearAllCache, clearCacheKeepToken } from '../utils/cache';
+import { formatErrorMessage } from '../utils/errorHandler';
+import Logo from '../components/Logo';
 import './Register.css';
 
 interface FormErrors {
@@ -15,6 +17,7 @@ function Register() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { register: registerUser, isAuthenticated } = useAuth();
+  const { showSuccess, showError } = useToast();
   const referralCodeFromUrl = searchParams.get('ref');
 
   // Redirecionar se já está autenticado
@@ -36,8 +39,6 @@ function Register() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
   const [referralInfo, setReferralInfo] = useState<string>('');
 
   // Capturar código de indicação da URL
@@ -49,13 +50,22 @@ function Register() {
 
   // Validação de email
   const validateEmail = (email: string): string | undefined => {
-    if (!email) {
+    if (!email || !email.trim()) {
       return 'Email é obrigatório';
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    
+    const trimmedEmail = email.trim();
+    
+    if (trimmedEmail.length > 255) {
+      return 'Email muito longo (máximo 255 caracteres)';
+    }
+    
+    // Regex mais robusto para email
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmedEmail)) {
       return 'Email deve ser válido';
     }
+    
     return undefined;
   };
 
@@ -64,25 +74,51 @@ function Register() {
     if (!password) {
       return 'Senha é obrigatória';
     }
+    
+    // Não permitir senha com apenas espaços
+    if (password.trim() === '') {
+      return 'Senha não pode conter apenas espaços';
+    }
+    
     if (password.length < 8) {
       return 'Senha deve ter no mínimo 8 caracteres';
     }
+    
+    if (password.length > 72) {
+      return 'Senha muito longa (máximo 72 caracteres)';
+    }
+    
     const hasLetter = /[a-zA-Z]/.test(password);
     const hasNumber = /\d/.test(password);
+    
     if (!hasLetter || !hasNumber) {
       return 'Senha deve conter letras e números';
     }
+    
     return undefined;
   };
 
   // Validação de nome
   const validateName = (name: string): string | undefined => {
-    if (!name.trim()) {
+    if (!name || !name.trim()) {
       return 'Nome é obrigatório';
     }
-    if (name.trim().length < 3) {
+    
+    const trimmedName = name.trim();
+    
+    if (trimmedName.length < 3) {
       return 'Nome deve ter no mínimo 3 caracteres';
     }
+    
+    if (trimmedName.length > 100) {
+      return 'Nome muito longo (máximo 100 caracteres)';
+    }
+    
+    // Validar caracteres válidos (letras, espaços, acentos, hífens)
+    if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(trimmedName)) {
+      return 'Nome contém caracteres inválidos';
+    }
+    
     return undefined;
   };
 
@@ -114,11 +150,6 @@ function Register() {
         [name]: undefined
       }));
     }
-    
-    // Limpar erro da API quando usuário digita
-    if (apiError) {
-      setApiError('');
-    }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -134,10 +165,6 @@ function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Limpar erro e mensagem de sucesso da API
-    setApiError('');
-    setSuccessMessage('');
     
     // Limpar dados antigos de cache antes de criar nova conta
     clearCacheKeepToken();
@@ -162,8 +189,17 @@ function Register() {
 
     setErrors(newErrors);
 
-    // Se houver erros, não enviar
+    // Se houver erros, mostrar notificações toast
     if (nameError || emailError || passwordError) {
+      if (nameError) {
+        showError(nameError);
+      }
+      if (emailError) {
+        showError(emailError);
+      }
+      if (passwordError) {
+        showError(passwordError);
+      }
       return;
     }
 
@@ -178,29 +214,17 @@ function Register() {
         referralCode: referralCodeFromUrl || undefined,
       });
 
-      // AuthContext já salva o token e atualiza o estado
-      // Mostrar mensagem de sucesso e redirecionar
-      setSuccessMessage(`✓ Conta criada com sucesso! Bem-vindo(a), ${formData.name}!`);
+      // Mostrar mensagem de sucesso
+      const successMsg = `Conta criada com sucesso! Bem-vindo(a), ${formData.name}!`;
+      showSuccess(successMsg);
       
       // Redirecionar para perfil após 1.5 segundos
       setTimeout(() => {
         navigate('/profile');
       }, 1500);
     } catch (error) {
-      const apiError = error as ApiError;
-      
-      // Tratar mensagens de erro
-      let errorMessage = 'Erro ao criar conta. Tente novamente.';
-      
-      if (apiError.message) {
-        if (Array.isArray(apiError.message)) {
-          errorMessage = apiError.message.join(', ');
-        } else {
-          errorMessage = apiError.message;
-        }
-      }
-      
-      setApiError(errorMessage);
+      const errorMessage = formatErrorMessage(error);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -209,6 +233,7 @@ function Register() {
   return (
     <div className="register-container">
       <div className="register-card">
+        <Logo size="large" />
         <h1>Criar Conta</h1>
         <p className="register-subtitle">
           Cadastre-se e comece a ganhar pontos por indicações
@@ -221,18 +246,6 @@ function Register() {
         )}
         
         <form onSubmit={handleSubmit} className="register-form" noValidate>
-          {successMessage && (
-            <div className="api-success">
-              {successMessage}
-            </div>
-          )}
-
-          {apiError && (
-            <div className="api-error">
-              {apiError}
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="name">Nome Completo</label>
             <input

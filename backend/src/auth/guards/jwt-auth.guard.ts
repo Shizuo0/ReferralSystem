@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -14,6 +15,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
+    private configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -35,13 +37,15 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      const secret = this.configService.get<string>('JWT_SECRET') || 'default-secret-change-in-production';
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET || 'default-secret-change-in-production',
+        secret,
       });
 
       // Injetar usuário no request
       request['user'] = payload;
-    } catch {
+    } catch (error) {
+      console.error('JWT verification failed:', error.message);
       throw new UnauthorizedException('Token inválido ou expirado');
     }
 

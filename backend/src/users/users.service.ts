@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 
@@ -8,6 +9,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -52,8 +54,7 @@ export class UsersService {
    * Formato: http://localhost:5173/register?ref=MARI1234
    */
   private generateReferralLink(referralCode: string): string {
-    const frontendUrl =
-      process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
     return `${frontendUrl}/register?ref=${referralCode}`;
   }
 }

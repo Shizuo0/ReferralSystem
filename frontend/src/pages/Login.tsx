@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import type { ApiError } from '../types';
+import { useToast } from '../contexts/ToastContext';
 import { clearCacheKeepToken } from '../utils/cache';
+import { formatErrorMessage } from '../utils/errorHandler';
+import Logo from '../components/Logo';
 import './Login.css';
 
 interface FormErrors {
@@ -14,6 +16,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated } = useAuth();
+  const { showError, showWarning } = useToast();
   const sessionExpired = (location.state as any)?.sessionExpired;
 
   const [formData, setFormData] = useState({
@@ -24,14 +27,13 @@ function Login() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState<string>('');
 
   // Mostrar mensagem se sessão expirou
   useEffect(() => {
     if (sessionExpired) {
-      setApiError('Sua sessão expirou. Por favor, faça login novamente.');
+      showWarning('Sua sessão expirou. Por favor, faça login novamente.');
     }
-  }, [sessionExpired]);
+  }, [sessionExpired, showWarning]);
 
   // Redirecionar se já está autenticado
   useEffect(() => {
@@ -88,11 +90,6 @@ function Login() {
         [name]: undefined
       }));
     }
-    
-    // Limpar erro da API quando usuário digita
-    if (apiError) {
-      setApiError('');
-    }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -108,9 +105,6 @@ function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Limpar erro da API
-    setApiError('');
     
     // Limpar dados antigos de cache (mantém apenas token se houver)
     clearCacheKeepToken();
@@ -132,8 +126,14 @@ function Login() {
 
     setErrors(newErrors);
 
-    // Se houver erros, não enviar
+    // Se houver erros, mostrar notificações toast
     if (emailError || passwordError) {
+      if (emailError) {
+        showError(emailError);
+      }
+      if (passwordError) {
+        showError(passwordError);
+      }
       return;
     }
 
@@ -150,20 +150,8 @@ function Login() {
       // Redirecionar para perfil
       navigate('/profile');
     } catch (error) {
-      const apiError = error as ApiError;
-      
-      // Tratar mensagens de erro
-      let errorMessage = 'Erro ao fazer login. Tente novamente.';
-      
-      if (apiError.message) {
-        if (Array.isArray(apiError.message)) {
-          errorMessage = apiError.message.join(', ');
-        } else {
-          errorMessage = apiError.message;
-        }
-      }
-      
-      setApiError(errorMessage);
+      const errorMessage = formatErrorMessage(error);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -172,18 +160,13 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-card">
+        <Logo size="large" />
         <h1>Entrar</h1>
         <p className="login-subtitle">
           Acesse sua conta para ver sua pontuação
         </p>
         
         <form onSubmit={handleSubmit} className="login-form" noValidate>
-          {apiError && (
-            <div className="api-error">
-              {apiError}
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input

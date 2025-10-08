@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
+import { LoadingProvider } from './contexts/LoadingContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { PrivateRoute } from './components/PrivateRoute';
+import { LoadingSpinner } from './components/LoadingSpinner';
 import { useRouteCache } from './hooks/useRouteCache';
 import './App.css';
 
@@ -11,32 +14,13 @@ const Login = lazy(() => import('./pages/Login'));
 const Profile = lazy(() => import('./pages/Profile'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-// Componente de loading aprimorado
+// Componente de loading para Suspense
 const LoadingScreen = () => (
-  <div style={{
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    gap: '16px',
-  }}>
-    <div className="spinner-large" style={{
-      width: '48px',
-      height: '48px',
-      border: '4px solid rgba(139, 92, 246, 0.2)',
-      borderTopColor: 'var(--primary-color)',
-      borderRadius: '50%',
-      animation: 'spin 0.8s linear infinite',
-    }}></div>
-    <p style={{ 
-      color: 'var(--text-secondary)', 
-      fontSize: '14px',
-      animation: 'pulse 2s ease-in-out infinite',
-    }}>
-      Carregando aplicação...
-    </p>
-  </div>
+  <LoadingSpinner 
+    size="large" 
+    message="Carregando aplicação..." 
+    fullScreen 
+  />
 );
 
 // Wrapper que limpa cache ao mudar de rota
@@ -64,11 +48,15 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Suspense fallback={<LoadingScreen />}>
-          <AppRoutes />
-        </Suspense>
-      </AuthProvider>
+      <ToastProvider>
+        <LoadingProvider>
+          <AuthProvider>
+            <Suspense fallback={<LoadingScreen />}>
+              <AppRoutes />
+            </Suspense>
+          </AuthProvider>
+        </LoadingProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

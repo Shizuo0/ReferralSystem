@@ -51,13 +51,15 @@
 .not-found-title {
   font-size: 120px;
   font-weight: 700;
-  background: linear-gradient(135deg, #6366f1, #7c3aed, #5b21b6);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #7c3aed, #5b21b6);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
   line-height: 1;
-  animation: pulse 2s ease-in-out infinite;
+  animation: pulse 2s ease-in-out infinite, gradientShift 6s ease infinite;
+  text-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
 }
 
 .not-found-subtitle {
@@ -91,17 +93,42 @@
   font-weight: 600;
   color: var(--text-primary);
   background: var(--bg-tertiary);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border: 2px solid rgba(99, 102, 241, 0.3);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-secondary:active::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-secondary:hover {
   background: var(--bg-secondary);
   border-color: var(--primary-color);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4), 0 0 20px rgba(99, 102, 241, 0.2);
+  color: var(--primary-color);
+}
+
+.btn-secondary:active {
+  transform: translateY(-1px);
 }
 
 /* Responsivo */
